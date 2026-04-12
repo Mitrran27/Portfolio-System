@@ -1,0 +1,132 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cyan: #22d3ee;
+  --fuchsia: #d946ef;
+  --cyan-dim: rgba(34, 211, 238, 0.12);
+  --fuchsia-dim: rgba(217, 70, 239, 0.12);
+  --bg: #030712;
+  --surface: #0d1117;
+  --border: rgba(34, 211, 238, 0.18);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: #e2e8f0;
+  font-family: 'Exo 2', sans-serif;
+  overflow-x: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(34,211,238,0.3); border-radius: 3px; }
+
+/* Neon glow */
+.neon-text { text-shadow: 0 0 10px var(--cyan), 0 0 30px rgba(34,211,238,0.4), 0 0 60px rgba(34,211,238,0.15); }
+.neon-fuchsia { text-shadow: 0 0 10px var(--fuchsia), 0 0 30px rgba(217,70,239,0.4); }
+
+/* Glass card */
+.card-glass {
+  background: rgba(13, 17, 23, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Gradient border */
+.gradient-border { position: relative; }
+.gradient-border::before {
+  content: '';
+  position: absolute; inset: -1px;
+  background: linear-gradient(135deg, rgba(34,211,238,0.4), rgba(217,70,239,0.4), rgba(34,211,238,0.4));
+  border-radius: inherit;
+  z-index: -1;
+}
+
+/* Neon input */
+.input-neon {
+  background: rgba(3, 7, 18, 0.8);
+  border: 1px solid rgba(34, 211, 238, 0.2);
+  color: #e2e8f0;
+  font-family: 'Exo 2', sans-serif;
+  transition: all 0.3s;
+}
+.input-neon:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 3px rgba(34,211,238,0.08), 0 0 20px rgba(34,211,238,0.15);
+  outline: none;
+}
+.input-neon::placeholder { color: #4b5563; }
+
+/* Neon button */
+.btn-neon {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn-neon::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--cyan-dim), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.btn-neon:hover::before { opacity: 1; }
+.btn-neon:hover { box-shadow: 0 0 24px rgba(34,211,238,0.4); transform: translateY(-1px); }
+.btn-neon:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* Social icon */
+.social-icon { transition: all 0.3s; }
+.social-icon:hover { transform: translateY(-3px); }
+
+/* Skill bar */
+.skill-bar { height: 4px; border-radius: 2px; background: rgba(34,211,238,0.1); overflow: hidden; }
+.skill-bar-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--cyan), var(--fuchsia)); transition: width 1.2s ease; }
+
+/* Nav */
+.nav-link { transition: color 0.2s; }
+.nav-link:hover { color: var(--cyan); }
+.nav-link.active { color: var(--cyan); }
+
+/* Section fade-in */
+.section-fade { opacity: 0; transform: translateY(24px); transition: all 0.7s ease; }
+.section-fade.visible { opacity: 1; transform: translateY(0); }
+
+/* Background grid */
+.bg-grid {
+  background-image: linear-gradient(rgba(34,211,238,0.03) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(34,211,238,0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+
+/* Tech tag */
+.tech-tag {
+  background: rgba(217,70,239,0.08);
+  border: 1px solid rgba(217,70,239,0.25);
+  color: #d946ef;
+  font-size: 0.7rem;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-family: 'Exo 2', sans-serif;
+}
+
+/* Floating orb */
+@keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-18px)} }
+@keyframes pulse-slow { 0%,100%{opacity:0.4} 50%{opacity:0.7} }
+
+/* Cursor blink */
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.cursor-blink { animation: blink 1s step-end infinite; }
+
+/* Scan line */
+@keyframes scan { 0%{transform:translateY(-100%)} 100%{transform:translateY(100vh)} }
