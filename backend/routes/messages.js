@@ -1,9 +1,16 @@
 import { Router } from 'express'
 import Joi from 'joi'
+import rateLimit from 'express-rate-limit'
 import { supabase } from '../config/supabase.js'
 import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
+
+const contactLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many messages sent. Please try again later.' }
+})
 
 const messageSchema = Joi.object({
   sender_name: Joi.string().min(2).max(100).required(),
@@ -12,7 +19,7 @@ const messageSchema = Joi.object({
 })
 
 // POST /api/messages — public, from portfolio contact form
-router.post('/', async (req, res) => {
+router.post('/', contactLimiter, async (req, res) => {
   const { error: vErr, value } = messageSchema.validate(req.body)
   if (vErr) return res.status(400).json({ error: vErr.details[0].message })
 

@@ -8,7 +8,8 @@
     "migrate": "node migrate.js up",
     "migrate:down": "node migrate.js down",
     "migrate:status": "node migrate.js status",
-    "migrate:make": "node migrate.js make"
+    "migrate:make": "node migrate.js make",
+    "seed:admin": "node seed-admin.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

@@ -11,7 +11,7 @@ import { createClient } from '@supabase/supabase-js'
 import { readdir, readFile, writeFile } from 'fs/promises'
 import { existsSync, mkdirSync } from 'fs'
 import { resolve, dirname } from 'path'
-import { fileURLToPath } from 'url'
+import { fileURLToPath, pathToFileURL } from 'url'
 import dotenv from 'dotenv'
 
 dotenv.config()
@@ -107,7 +107,7 @@ async function up() {
   for (const file of pending) {
     process.stdout.write(`  ▸ ${file} ... `)
     try {
-      const migration = await import(resolve(MIGRATIONS_DIR, file))
+      const migration = await import(pathToFileURL(resolve(MIGRATIONS_DIR, file)).href)
       await migration.up(supabase, runSQL)
       await supabase.from('_migrations').insert({ name: file })
       console.log('✓')
@@ -139,7 +139,7 @@ async function down() {
   const file = data.name
   process.stdout.write(`\n  ◂ Rolling back ${file} ... `)
   try {
-    const migration = await import(resolve(MIGRATIONS_DIR, file))
+    const migration = await import(pathToFileURL(resolve(MIGRATIONS_DIR, file)).href)
     if (!migration.down) throw new Error('No down() export found in this migration.')
     await migration.down(supabase, runSQL)
     await supabase.from('_migrations').delete().eq('name', file)

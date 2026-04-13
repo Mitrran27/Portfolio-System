@@ -6,12 +6,30 @@ const router = Router()
 
 // GET /api/portfolio — public
 router.get('/', async (req, res) => {
-  const { data, error } = await supabase
+  let { data, error } = await supabase
     .from('portfolio')
     .select('*')
     .single()
 
-  if (error) return res.status(500).json({ error: 'Failed to fetch portfolio' })
+  // If no row exists yet, insert a default one and return it
+  if (error || !data) {
+    const { data: seeded, error: seedErr } = await supabase
+      .from('portfolio')
+      .insert({
+        name: 'Your Name',
+        title: 'Full Stack Developer',
+        bio: 'Passionate developer crafting digital experiences.',
+        email: 'hello@example.com',
+        location: 'Kuala Lumpur, Malaysia',
+        available_for_work: true
+      })
+      .select()
+      .single()
+
+    if (seedErr) return res.status(500).json({ error: 'Failed to fetch portfolio' })
+    return res.json(seeded)
+  }
+
   res.json(data)
 })
 
