@@ -6,6 +6,7 @@ import { authenticate } from '../middleware/auth.js'
 
 const router = Router()
 
+// Rate limit ONLY the public contact form POST
 const contactLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
@@ -18,7 +19,7 @@ const messageSchema = Joi.object({
   message: Joi.string().min(10).max(5000).required()
 })
 
-// POST /api/messages — public, from portfolio contact form
+// POST /api/messages — public (rate limited)
 router.post('/', contactLimiter, async (req, res) => {
   const { error: vErr, value } = messageSchema.validate(req.body)
   if (vErr) return res.status(400).json({ error: vErr.details[0].message })
@@ -44,7 +45,7 @@ router.get('/', authenticate, async (req, res) => {
   res.json(data)
 })
 
-// GET /api/messages/unread-count — admin only
+// GET /api/messages/unread-count — admin only (no rate limit)
 router.get('/unread-count', authenticate, async (req, res) => {
   const { count, error } = await supabase
     .from('messages')

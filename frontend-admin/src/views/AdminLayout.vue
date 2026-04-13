@@ -1,9 +1,9 @@
 <template>
   <div class="admin-layout">
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
-    <div class="admin-main">
+    <div class="admin-main" :class="{ 'sidebar-open': sidebarOpen }">
       <AdminHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" @open-messages="messagesOpen = true" />
-      <main class="p-6 fade-up">
+      <main class="p-4 md:p-6 fade-up">
         <RouterView />
       </main>
     </div>
@@ -25,18 +25,31 @@ const messagesOpen = ref(false)
 const confirmRef = ref(null)
 const messagesStore = useMessagesStore()
 
-// Provide confirm dialog globally
 provide('confirm', (msg, label) => confirmRef.value?.open(msg, label))
 
 onMounted(() => {
   messagesStore.fetchUnreadCount()
-  // Poll for new messages every 60s
   setInterval(() => messagesStore.fetchUnreadCount(), 60000)
 })
 </script>
 
 <style scoped>
-.admin-layout { display: flex; min-height: 100vh; }
-.admin-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-@media (min-width: 1024px) { .admin-main { margin-left: 0; } }
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+  position: relative;
+}
+.admin-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  transition: margin-left 0.3s ease;
+}
+/* On desktop (lg+), sidebar is always visible so push main content right */
+@media (min-width: 1024px) {
+  .admin-main {
+    margin-left: 260px;
+  }
+}
 </style>

@@ -1,12 +1,14 @@
 <template>
-  <!-- Overlay for mobile -->
-  <div v-if="open" class="sidebar-overlay lg:hidden" @click="$emit('close')" />
+  <!-- Mobile overlay -->
+  <Transition name="overlay">
+    <div v-if="open" class="sidebar-overlay lg:hidden" @click="$emit('close')" />
+  </Transition>
 
-  <aside :class="['admin-sidebar card-glass border-r border-cyan-400/20 flex flex-col', open ? 'open' : '']">
+  <aside :class="['admin-sidebar card-glass flex flex-col', open ? 'open' : '']">
     <!-- Logo -->
-    <div class="p-6 border-b border-cyan-400/20">
+    <div class="p-6 border-b border-cyan-400/20 flex-shrink-0">
       <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
           <span class="text-black font-orbitron font-bold text-sm">P</span>
         </div>
         <div>
@@ -26,7 +28,7 @@
     </nav>
 
     <!-- Footer -->
-    <div class="p-4 border-t border-cyan-400/20">
+    <div class="p-4 border-t border-cyan-400/20 flex-shrink-0">
       <p class="text-gray-600 text-xs text-center font-exo">Portfolio Admin v1.0</p>
     </div>
   </aside>
@@ -42,26 +44,28 @@ defineEmits(['close'])
 
 const messagesStore = useMessagesStore()
 
-// NavItem inline component
 const NavItem = {
   props: ['path', 'label', 'icon', 'badge'],
   emits: ['close'],
   setup(props, { emit }) {
     const route = useRoute()
-    const isActive = computed(() => route.path === props.path || route.path.startsWith(props.path + '/'))
+    const isActive = computed(() =>
+      route.path === props.path || route.path.startsWith(props.path + '/')
+    )
     return { isActive }
   },
   template: `
     <RouterLink :to="path" @click="$emit('close')"
-      :class="['nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-exo transition-all group', isActive ? 'sidebar-active' : 'text-gray-400 hover:text-white hover:bg-white/5']">
-      <span class="text-lg">{{ icon }}</span>
+      :class="['nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-exo transition-all group',
+        isActive ? 'sidebar-active' : 'text-gray-400 hover:text-white hover:bg-white/5']">
+      <span class="text-base w-5 text-center flex-shrink-0">{{ icon }}</span>
       <span class="flex-1">{{ label }}</span>
-      <span v-if="badge" class="badge-unread">{{ badge }}</span>
+      <span v-if="badge && badge > 0" class="badge-unread">{{ badge }}</span>
     </RouterLink>
   `
 }
 
-const unreadCount = computed(() => messagesStore.unreadCount || undefined)
+const unreadCount = computed(() => messagesStore.unreadCount || 0)
 
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: '⚡' },
@@ -78,18 +82,42 @@ const contentItems = [
 
 <style scoped>
 .admin-sidebar {
-  width: 260px; min-height: 100vh;
-  background: rgba(13, 17, 23, 0.95);
-  position: fixed; left: 0; top: 0; bottom: 0;
-  z-index: 40;
+  width: 260px;
+  height: 100vh;
+  background: rgba(13, 17, 23, 0.98);
+  border-right: 1px solid rgba(34, 211, 238, 0.15);
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 50;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
+  overflow: hidden;
 }
-.admin-sidebar.open { transform: translateX(0); }
-@media (min-width: 1024px) { .admin-sidebar { transform: translateX(0); position: sticky; top: 0; height: 100vh; } }
+
+/* Mobile: slide in when open=true */
+.admin-sidebar.open {
+  transform: translateX(0);
+}
+
+/* Desktop: always visible */
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    transform: translateX(0) !important;
+  }
+}
+
 .sidebar-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 39;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  z-index: 49;
   backdrop-filter: blur(2px);
 }
-.nav-item { cursor: pointer; }
+
+.nav-item { cursor: pointer; display: flex; }
+
+.overlay-enter-active, .overlay-leave-active { transition: opacity 0.25s ease; }
+.overlay-enter-from, .overlay-leave-to { opacity: 0; }
 </style>
