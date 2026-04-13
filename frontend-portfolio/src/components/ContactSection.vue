@@ -18,7 +18,7 @@
       </div>
 
       <!-- Quick contact cards -->
-      <div :class="['grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10 section-fade', visible ? 'visible' : '']">
+      <div :class="['grid grid-cols-1 sm:grid-cols-4 gap-4 mb-10 section-fade', visible ? 'visible' : '']">
         <!-- Email card -->
         <a v-if="info?.email" :href="`mailto:${info.email}`"
           class="quick-card card-glass rounded-2xl p-5 text-center hover:border-cyan-400/50 transition-all group">
@@ -43,7 +43,7 @@
           <p class="text-fuchsia-400 text-xs font-exo">Send a message below</p>
         </div>
 
-        <!-- Location / availability card -->
+        <!-- Location  -->
         <div class="quick-card card-glass rounded-2xl p-5 text-center">
           <div class="w-12 h-12 rounded-full bg-green-400/10 border border-green-400/30 flex items-center justify-center mx-auto mb-3">
             <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -54,6 +54,26 @@
           <p class="text-white font-exo text-sm font-medium mb-1">Based in</p>
           <p class="text-green-400 text-xs font-exo">{{ info?.location || 'Malaysia' }}</p>
           <span v-if="info?.available_for_work" class="inline-block mt-2 text-xs bg-green-900/40 border border-green-500/40 text-green-400 px-2 py-0.5 rounded-full font-exo">
+            ● Open to work
+          </span>
+        </div>
+
+        <!-- Availability card -->
+        <div class="quick-card card-glass rounded-2xl p-5 text-center">
+          <div class="w-12 h-12 rounded-full bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <p class="text-white font-exo text-sm font-medium mb-1">Availability</p>
+          <span class="inline-block mt-2 text-xs bg-yellow-900/40 border border-yellow-500/40 text-yellow-400 px-2 py-0.5 rounded-full font-exo">
+            Consulting
+          </span><br>
+          <span class="inline-block mt-2 text-xs bg-yellow-900/40 border border-yellow-500/40 text-yellow-400 px-2 py-0.5 rounded-full font-exo">
+            Freelance
+          </span><br>
+          <span v-if="info?.available_for_work" class="inline-block mt-2 text-xs bg-yellow-900/40 border border-yellow-500/40 text-yellow-400 px-2 py-0.5 rounded-full font-exo">
             ● Open to work
           </span>
         </div>

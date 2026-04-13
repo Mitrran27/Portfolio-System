@@ -1,35 +1,27 @@
 <template>
-  <!-- Mobile overlay -->
   <Transition name="overlay">
     <div v-if="open" class="sidebar-overlay lg:hidden" @click="$emit('close')" />
   </Transition>
 
-  <aside :class="['admin-sidebar card-glass flex flex-col', open ? 'open' : '']">
-    <!-- Logo -->
-    <div class="p-6 border-b border-cyan-400/20 flex-shrink-0">
-      <div class="flex items-center gap-3">
-        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center flex-shrink-0">
-          <span class="text-black font-orbitron font-bold text-sm">P</span>
-        </div>
-        <div>
-          <p class="text-white font-orbitron text-xs font-bold tracking-widest">PORTFOLIO</p>
-          <p class="text-cyan-400 text-xs font-exo">Control Panel</p>
-        </div>
+  <aside :class="['admin-sidebar flex flex-col', open ? 'open' : '']">
+    <div class="sidebar-logo">
+      <div class="logo-icon">P</div>
+      <div>
+        <p class="text-white font-orbitron text-xs font-bold tracking-widest">PORTFOLIO</p>
+        <p class="text-cyan-400 text-xs font-exo">Control Panel</p>
       </div>
     </div>
 
-    <!-- Nav -->
-    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-      <p class="text-gray-600 text-xs font-orbitron tracking-widest px-3 py-2 uppercase">Navigation</p>
+    <nav class="flex-1 p-3 overflow-y-auto space-y-0.5">
+      <p class="nav-section-label">Navigation</p>
       <NavItem v-for="item in navItems" :key="item.path" v-bind="item" @close="$emit('close')" />
 
-      <p class="text-gray-600 text-xs font-orbitron tracking-widest px-3 py-2 mt-4 uppercase">Content</p>
+      <p class="nav-section-label mt-4">Content</p>
       <NavItem v-for="item in contentItems" :key="item.path" v-bind="item" @close="$emit('close')" />
     </nav>
 
-    <!-- Footer -->
-    <div class="p-4 border-t border-cyan-400/20 flex-shrink-0">
-      <p class="text-gray-600 text-xs text-center font-exo">Portfolio Admin v1.0</p>
+    <div class="p-4 border-t border-cyan-400/10">
+      <p class="text-gray-700 text-xs text-center font-exo">Portfolio Admin v1.0</p>
     </div>
   </aside>
 </template>
@@ -47,7 +39,7 @@ const messagesStore = useMessagesStore()
 const NavItem = {
   props: ['path', 'label', 'icon', 'badge'],
   emits: ['close'],
-  setup(props, { emit }) {
+  setup(props) {
     const route = useRoute()
     const isActive = computed(() =>
       route.path === props.path || route.path.startsWith(props.path + '/')
@@ -56,11 +48,10 @@ const NavItem = {
   },
   template: `
     <RouterLink :to="path" @click="$emit('close')"
-      :class="['nav-item flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-exo transition-all group',
-        isActive ? 'sidebar-active' : 'text-gray-400 hover:text-white hover:bg-white/5']">
-      <span class="text-base w-5 text-center flex-shrink-0">{{ icon }}</span>
-      <span class="flex-1">{{ label }}</span>
-      <span v-if="badge && badge > 0" class="badge-unread">{{ badge }}</span>
+      :class="['nav-link-item font-exo', isActive ? 'active' : '']">
+      <span class="nav-icon">{{ icon }}</span>
+      <span class="flex-1 text-sm">{{ label }}</span>
+      <span v-if="badge && badge > 0" class="badge-unread text-xs">{{ badge }}</span>
     </RouterLink>
   `
 }
@@ -75,6 +66,7 @@ const navItems = [
 const contentItems = [
   { path: '/portfolio', label: 'Profile & Info', icon: '👤' },
   { path: '/projects', label: 'Projects', icon: '🚀' },
+  { path: '/experiences', label: 'Experiences', icon: '💼' },
   { path: '/skills', label: 'Skills', icon: '⚙' },
   { path: '/socials', label: 'Social Links', icon: '🔗' },
 ]
@@ -84,40 +76,85 @@ const contentItems = [
 .admin-sidebar {
   width: 260px;
   height: 100vh;
-  background: rgba(13, 17, 23, 0.98);
-  border-right: 1px solid rgba(34, 211, 238, 0.15);
+  background: rgba(10, 14, 20, 0.99);
+  border-right: 1px solid rgba(34, 211, 238, 0.12);
   position: fixed;
-  left: 0;
-  top: 0;
-  bottom: 0;
+  left: 0; top: 0; bottom: 0;
   z-index: 50;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
+.admin-sidebar.open { transform: translateX(0); }
 
-/* Mobile: slide in when open=true */
-.admin-sidebar.open {
-  transform: translateX(0);
-}
-
-/* Desktop: always visible */
+/* Desktop: always show */
 @media (min-width: 1024px) {
-  .admin-sidebar {
-    transform: translateX(0) !important;
-  }
+  .admin-sidebar { transform: translateX(0) !important; }
+}
+
+.sidebar-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(34,211,238,0.1);
+  flex-shrink: 0;
+}
+.logo-icon {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #22d3ee, #d946ef);
+  display: flex; align-items: center; justify-content: center;
+  color: black; font-weight: 900; font-size: 14px;
+  font-family: 'Orbitron', sans-serif;
+  flex-shrink: 0;
+}
+
+.nav-section-label {
+  color: #374151;
+  font-size: 10px;
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 8px 12px 4px;
+}
+
+.nav-link-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.18s ease;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+}
+.nav-link-item:hover {
+  color: #e5e7eb;
+  background: rgba(255,255,255,0.04);
+}
+.nav-link-item.active {
+  color: #22d3ee;
+  background: rgba(34,211,238,0.08);
+  border-left-color: #22d3ee;
+}
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 14px;
+  flex-shrink: 0;
 }
 
 .sidebar-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.65);
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6);
   z-index: 49;
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(3px);
 }
-
-.nav-item { cursor: pointer; display: flex; }
-
-.overlay-enter-active, .overlay-leave-active { transition: opacity 0.25s ease; }
+.overlay-enter-active, .overlay-leave-active { transition: opacity 0.25s; }
 .overlay-enter-from, .overlay-leave-to { opacity: 0; }
 </style>

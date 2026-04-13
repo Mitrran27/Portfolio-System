@@ -1,9 +1,9 @@
 <template>
   <div class="admin-layout">
     <AdminSidebar :open="sidebarOpen" @close="sidebarOpen = false" />
-    <div class="admin-main" :class="{ 'sidebar-open': sidebarOpen }">
+    <div class="admin-main">
       <AdminHeader @toggle-sidebar="sidebarOpen = !sidebarOpen" @open-messages="messagesOpen = true" />
-      <main class="p-4 md:p-6 fade-up">
+      <main class="p-4 md:p-6 fade-up min-h-0 flex-1">
         <RouterView />
       </main>
     </div>
@@ -37,16 +37,17 @@ onMounted(() => {
 .admin-layout {
   display: flex;
   min-height: 100vh;
-  position: relative;
 }
 .admin-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  transition: margin-left 0.3s ease;
+  /* Default: no margin (mobile — sidebar is off-screen) */
+  margin-left: 0;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
 }
-/* On desktop (lg+), sidebar is always visible so push main content right */
+/* Desktop: sidebar is always visible, push content right */
 @media (min-width: 1024px) {
   .admin-main {
     margin-left: 260px;
