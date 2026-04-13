@@ -5,15 +5,28 @@
       <div class="orb" style="width:500px;height:500px;background:rgba(217,70,239,0.04);bottom:-200px;left:-200px;animation:float 12s ease-in-out infinite reverse" />
     </div>
 
+    <!-- Navigation -->
     <nav class="fixed top-0 left-0 right-0 z-50 card-glass border-b border-cyan-400/10">
       <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-        <a href="#home" class="font-orbitron font-bold text-white text-sm tracking-wider">
-          <span class="text-cyan-400 neon-text">{{ info?.name?.split(' ')[0] || 'DEV' }}</span>.io
+        <!-- Logo + name -->
+        <a href="#home" class="flex items-center gap-2.5 group">
+          <img src="@/assets/logo.png" alt="Logo"
+            class="h-9 w-auto object-contain transition-all group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+            style="filter: drop-shadow(0 0 4px rgba(34,211,238,0.4))" />
+          <span class="font-orbitron font-bold text-white text-sm tracking-wider">
+            <span class="text-cyan-400 neon-text">{{ firstName }}</span>.io
+          </span>
         </a>
+
+        <!-- Desktop nav -->
         <div class="hidden md:flex items-center gap-6">
           <a v-for="link in navLinks" :key="link.href" :href="link.href"
-            class="nav-link text-gray-400 text-sm font-exo hover:text-cyan-400 transition-colors">{{ link.label }}</a>
+            class="nav-link text-gray-400 text-sm font-exo hover:text-cyan-400 transition-colors">
+            {{ link.label }}
+          </a>
         </div>
+
+        <!-- Mobile burger -->
         <button @click="mobileMenu = !mobileMenu" class="md:hidden text-gray-400 hover:text-cyan-400 p-1">
           <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -21,15 +34,20 @@
           </svg>
         </button>
       </div>
+
+      <!-- Mobile menu -->
       <Transition name="mobile-menu">
         <div v-if="mobileMenu" class="md:hidden border-t border-cyan-400/10 px-6 py-4 space-y-2">
           <a v-for="link in navLinks" :key="link.href" :href="link.href"
             @click="mobileMenu = false"
-            class="block text-gray-400 hover:text-cyan-400 font-exo py-2 text-sm">{{ link.label }}</a>
+            class="block text-gray-400 hover:text-cyan-400 font-exo py-2 text-sm">
+            {{ link.label }}
+          </a>
         </div>
       </Transition>
     </nav>
 
+    <!-- Main content -->
     <main class="relative z-10">
       <HeroSection :info="info" :socials="socials" :loading="loading" />
       <AboutSection :info="info" />
@@ -50,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import HeroSection from '@/components/HeroSection.vue'
 import AboutSection from '@/components/AboutSection.vue'
@@ -67,6 +85,8 @@ const socials = ref([])
 const experiences = ref([])
 const loading = ref(true)
 const mobileMenu = ref(false)
+
+const firstName = computed(() => info.value?.name?.split(' ')[0] || 'DEV')
 
 const navLinks = [
   { href: '#home', label: 'Home' },
