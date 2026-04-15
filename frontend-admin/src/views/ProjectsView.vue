@@ -22,7 +22,12 @@
         <div class="p-5">
           <div class="flex items-start justify-between mb-3">
             <h3 class="text-white font-exo font-semibold">{{ project.title }}</h3>
-            <span v-if="project.featured" class="text-xs bg-cyan-400/20 text-cyan-400 px-2 py-0.5 rounded font-exo">Featured</span>
+            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
+              <span v-if="project.project_type" :class="typeStyle(project.project_type)" class="text-xs px-2 py-0.5 rounded font-exo">
+                {{ typeLabel(project.project_type) }}
+              </span>
+              <span v-if="project.featured" class="text-xs bg-cyan-400/20 text-cyan-400 px-2 py-0.5 rounded font-exo">Featured</span>
+            </div>
           </div>
           <p class="text-gray-400 text-sm font-exo line-clamp-2 mb-4">{{ project.description }}</p>
           <div class="flex flex-wrap gap-1.5 mb-4">
@@ -30,6 +35,10 @@
               class="text-xs bg-fuchsia-400/10 text-fuchsia-400 border border-fuchsia-400/20 px-2 py-0.5 rounded font-exo">
               {{ tech }}
             </span>
+          </div>
+          <!-- Screenshots count indicator -->
+          <div v-if="project.screenshots?.length" class="text-xs text-gray-500 font-exo mb-3">
+            📷 {{ project.screenshots.length }} screenshot{{ project.screenshots.length > 1 ? 's' : '' }}
           </div>
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-cyan-400/10">
             <a v-if="project.live_url" :href="project.live_url" target="_blank" class="text-cyan-400 hover:underline text-xs font-exo">↗ Live</a>
@@ -42,7 +51,7 @@
     </div>
 
     <!-- Modal -->
-    <AppModal v-model="showModal" :title="editing ? 'Edit Project' : 'New Project'" width="640px">
+    <AppModal v-model="showModal" :title="editing ? 'Edit Project' : 'New Project'" width="680px">
       <form @submit.prevent="save" class="space-y-4">
         <div class="grid grid-cols-2 gap-4">
           <div class="col-span-2">
@@ -53,6 +62,22 @@
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Description</label>
             <textarea v-model="form.description" rows="3" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm resize-none" placeholder="What does this project do?" />
           </div>
+
+          <!-- Project Type -->
+          <div>
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Project Type</label>
+            <select v-model="form.project_type" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm">
+              <option value="web-app">Web App</option>
+              <option value="mobile-app">Mobile App</option>
+              <option value="website">Website</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Sort Order</label>
+            <input v-model.number="form.sort_order" type="number" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" />
+          </div>
+
           <div>
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Live URL</label>
             <input v-model="form.live_url" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="https://..." />
@@ -61,14 +86,21 @@
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">GitHub URL</label>
             <input v-model="form.github_url" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="https://github.com/..." />
           </div>
-          <div>
-            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Image URL</label>
+
+          <!-- Thumbnail -->
+          <div class="col-span-2">
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Thumbnail Image URL</label>
             <input v-model="form.image_url" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="https://..." />
           </div>
-          <div>
-            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Sort Order</label>
-            <input v-model.number="form.sort_order" type="number" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" />
+
+          <!-- Screenshots -->
+          <div class="col-span-2">
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Screenshots (one URL per line)</label>
+            <textarea v-model="screenshotsInput" rows="4" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm resize-none"
+              placeholder="https://example.com/screenshot1.png&#10;https://example.com/screenshot2.png" />
+            <p class="text-gray-600 text-xs font-exo mt-1">These will be shown in the project modal gallery.</p>
           </div>
+
           <div class="col-span-2">
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Tech Stack (comma-separated)</label>
             <input :value="techInput" @input="techInput = $event.target.value" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="Vue.js, Node.js, PostgreSQL" />
@@ -104,20 +136,39 @@ const saving = ref(false)
 const editing = ref(null)
 const confirmRef = ref(null)
 const techInput = ref('')
+const screenshotsInput = ref('')
 
-const defaultForm = () => ({ title: '', description: '', live_url: '', github_url: '', image_url: '', featured: false, sort_order: 0 })
+const defaultForm = () => ({ title: '', description: '', live_url: '', github_url: '', image_url: '', featured: false, sort_order: 0, project_type: 'web-app' })
 const form = ref(defaultForm())
+
+const typeLabel = (type) => {
+  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website' }
+  return map[type] || type
+}
+const typeStyle = (type) => {
+  const map = {
+    'web-app': 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30',
+    'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400 border border-fuchsia-400/30',
+    'website': 'bg-amber-400/20 text-amber-400 border border-amber-400/30'
+  }
+  return map[type] || 'bg-gray-400/20 text-gray-400'
+}
 
 const openModal = (project = null) => {
   editing.value = project?.id || null
   form.value = project ? { ...project } : defaultForm()
   techInput.value = project?.tech_stack?.join(', ') || ''
+  screenshotsInput.value = project?.screenshots?.join('\n') || ''
   showModal.value = true
 }
 
 const save = async () => {
   saving.value = true
-  const payload = { ...form.value, tech_stack: techInput.value.split(',').map(t => t.trim()).filter(Boolean) }
+  const payload = {
+    ...form.value,
+    tech_stack: techInput.value.split(',').map(t => t.trim()).filter(Boolean),
+    screenshots: screenshotsInput.value.split('\n').map(s => s.trim()).filter(Boolean)
+  }
   try {
     if (editing.value) await store.updateProject(editing.value, payload)
     else await store.createProject(payload)

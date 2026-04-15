@@ -34,7 +34,14 @@
                 View Details
               </span>
             </div>
-            <div v-if="project.featured" class="absolute top-2 right-2 text-xs bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 px-2 py-0.5 rounded font-exo">
+            <!-- Badges -->
+            <div class="absolute top-2 left-2 flex gap-1.5">
+              <span v-if="project.project_type" :class="typeStyle(project.project_type)"
+                class="text-xs px-2 py-0.5 rounded font-exo backdrop-blur-sm">
+                {{ typeLabel(project.project_type) }}
+              </span>
+            </div>
+            <div v-if="project.featured" class="absolute top-2 right-2 text-xs bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 px-2 py-0.5 rounded font-exo backdrop-blur-sm">
               Featured
             </div>
           </div>
@@ -59,7 +66,13 @@
           <!-- Header -->
           <div class="flex items-center justify-between p-5 border-b border-cyan-400/20">
             <div>
-              <h3 class="text-white font-orbitron font-bold text-base">{{ activeProject.title }}</h3>
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="text-white font-orbitron font-bold text-base">{{ activeProject.title }}</h3>
+                <span v-if="activeProject.project_type" :class="typeStyle(activeProject.project_type)"
+                  class="text-xs px-2 py-0.5 rounded font-exo">
+                  {{ typeLabel(activeProject.project_type) }}
+                </span>
+              </div>
               <div v-if="activeProject.featured" class="text-xs text-cyan-400 font-exo mt-0.5">Featured Project</div>
             </div>
             <button @click="closeModal" class="text-gray-500 hover:text-white transition-colors p-1 rounded ml-4">
@@ -69,13 +82,40 @@
             </button>
           </div>
 
-          <!-- Screenshot carousel -->
-          <div v-if="activeProject.image_url" class="screenshot-area relative overflow-hidden bg-black/50">
-            <img :src="activeProject.image_url" :alt="activeProject.title"
-              class="w-full h-full object-contain" />
+          <!-- Screenshot gallery -->
+          <div v-if="allImages.length" class="screenshot-area relative bg-black/50 overflow-hidden">
+            <img :src="allImages[activeSlide]" :alt="activeProject.title"
+              class="w-full h-full object-contain transition-opacity duration-300" />
+            <!-- Navigation arrows -->
+            <button v-if="allImages.length > 1" @click="prevSlide"
+              class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">
+              ‹
+            </button>
+            <button v-if="allImages.length > 1" @click="nextSlide"
+              class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">
+              ›
+            </button>
+            <!-- Dots -->
+            <div v-if="allImages.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+              <button v-for="(_, idx) in allImages" :key="idx" @click="activeSlide = idx"
+                :class="['w-1.5 h-1.5 rounded-full transition-all', idx === activeSlide ? 'bg-cyan-400 w-4' : 'bg-white/40']" />
+            </div>
+            <!-- Counter -->
+            <div v-if="allImages.length > 1" class="absolute top-2 right-2 bg-black/60 text-white text-xs font-exo px-2 py-0.5 rounded">
+              {{ activeSlide + 1 }} / {{ allImages.length }}
+            </div>
           </div>
           <div v-else class="screenshot-area flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
             <span class="text-6xl opacity-20">🚀</span>
+          </div>
+
+          <!-- Thumbnail strip if multiple images -->
+          <div v-if="allImages.length > 1" class="flex gap-2 px-4 py-2 overflow-x-auto bg-black/30 border-b border-cyan-400/10">
+            <button v-for="(img, idx) in allImages" :key="idx" @click="activeSlide = idx"
+              :class="['flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all',
+                idx === activeSlide ? 'border-cyan-400' : 'border-transparent opacity-50 hover:opacity-80']">
+              <img :src="img" class="w-full h-full object-cover" />
+            </button>
           </div>
 
           <!-- Details -->
@@ -110,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
 
 defineProps({ projects: Array })
@@ -118,20 +158,52 @@ defineProps({ projects: Array })
 const sectionRef = ref(null)
 const visible = ref(false)
 const activeProject = ref(null)
+const activeSlide = ref(0)
 
 useIntersectionObserver(sectionRef, ([{ isIntersecting }]) => {
   if (isIntersecting) visible.value = true
 }, { threshold: 0.05 })
 
+// Combine thumbnail + screenshots into one gallery array
+const allImages = computed(() => {
+  if (!activeProject.value) return []
+  const imgs = []
+  if (activeProject.value.image_url) imgs.push(activeProject.value.image_url)
+  if (activeProject.value.screenshots?.length) {
+    activeProject.value.screenshots.forEach(s => {
+      if (s && !imgs.includes(s)) imgs.push(s)
+    })
+  }
+  return imgs
+})
+
+const typeLabel = (type) => {
+  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website' }
+  return map[type] || type
+}
+const typeStyle = (type) => {
+  const map = {
+    'web-app': 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30',
+    'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400 border border-fuchsia-400/30',
+    'website': 'bg-amber-400/20 text-amber-400 border border-amber-400/30'
+  }
+  return map[type] || 'bg-gray-400/20 text-gray-400'
+}
+
 const openModal = (project) => {
   activeProject.value = project
+  activeSlide.value = 0
   document.body.style.overflow = 'hidden'
 }
 
 const closeModal = () => {
   activeProject.value = null
+  activeSlide.value = 0
   document.body.style.overflow = ''
 }
+
+const nextSlide = () => { activeSlide.value = (activeSlide.value + 1) % allImages.value.length }
+const prevSlide = () => { activeSlide.value = (activeSlide.value - 1 + allImages.value.length) % allImages.value.length }
 </script>
 
 <style scoped>

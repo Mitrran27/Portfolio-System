@@ -156,3 +156,26 @@ CREATE POLICY "Service role can write socials" ON socials FOR ALL USING (auth.ro
 -- Admins: only service role
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Service role only" ON admins FOR ALL USING (auth.role() = 'service_role');
+
+-- ============================================
+-- EDUCATION TABLE (added in v1.1)
+-- ============================================
+CREATE TABLE IF NOT EXISTS education (
+  id          UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+  degree      TEXT NOT NULL,
+  institution TEXT NOT NULL,
+  period      TEXT NOT NULL,
+  description TEXT,
+  bullets     TEXT[] DEFAULT '{}',
+  grade       TEXT,
+  sort_order  INT DEFAULT 0,
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+
+ALTER TABLE education ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Public read education" ON education FOR SELECT USING (TRUE);
+CREATE POLICY "Service write education" ON education FOR ALL USING (auth.role() = 'service_role');
+
+-- Add project_type and screenshots to projects (v1.1)
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS project_type TEXT DEFAULT 'web-app';
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS screenshots TEXT[] DEFAULT '{}';

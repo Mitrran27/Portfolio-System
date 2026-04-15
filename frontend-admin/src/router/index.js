@@ -14,6 +14,7 @@ const routes = [
       { path: 'portfolio', name: 'Portfolio', component: () => import('@/views/PortfolioView.vue') },
       { path: 'projects', name: 'Projects', component: () => import('@/views/ProjectsView.vue') },
       { path: 'experiences', name: 'Experiences', component: () => import('@/views/ExperiencesView.vue') },
+      { path: 'education', name: 'Education', component: () => import('@/views/EducationView.vue') },
       { path: 'skills', name: 'Skills', component: () => import('@/views/SkillsView.vue') },
       { path: 'socials', name: 'Socials', component: () => import('@/views/SocialsView.vue') },
     ]

@@ -8,23 +8,26 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   const skills = ref([])
   const socials = ref([])
   const experiences = ref([])
+  const education = ref([])
   const loading = ref(false)
 
   const fetchAll = async () => {
     loading.value = true
     try {
-      const [infoRes, projectsRes, skillsRes, socialsRes, expRes] = await Promise.all([
+      const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
         api.get('/portfolio'),
         api.get('/portfolio/projects'),
         api.get('/portfolio/skills'),
         api.get('/portfolio/socials'),
         api.get('/portfolio/experiences'),
+        api.get('/portfolio/education'),
       ])
       info.value = infoRes.data
       projects.value = projectsRes.data
       skills.value = skillsRes.data
       socials.value = socialsRes.data
       experiences.value = expRes.data
+      education.value = eduRes.data
     } finally {
       loading.value = false
     }
@@ -88,12 +91,29 @@ export const usePortfolioStore = defineStore('portfolio', () => {
     experiences.value = experiences.value.filter(e => e.id !== id)
   }
 
+  // Education
+  const createEducation = async (payload) => {
+    const { data } = await api.post('/portfolio/education', payload)
+    education.value.push(data)
+    return data
+  }
+  const updateEducation = async (id, payload) => {
+    const { data } = await api.put(`/portfolio/education/${id}`, payload)
+    const idx = education.value.findIndex(e => e.id === id)
+    if (idx !== -1) education.value[idx] = data
+  }
+  const deleteEducation = async (id) => {
+    await api.delete(`/portfolio/education/${id}`)
+    education.value = education.value.filter(e => e.id !== id)
+  }
+
   return {
-    info, projects, skills, socials, experiences, loading,
+    info, projects, skills, socials, experiences, education, loading,
     fetchAll, updateInfo,
     createProject, updateProject, deleteProject,
     createSkill, updateSkill, deleteSkill,
     updateSocials,
-    createExperience, updateExperience, deleteExperience
+    createExperience, updateExperience, deleteExperience,
+    createEducation, updateEducation, deleteEducation
   }
 })

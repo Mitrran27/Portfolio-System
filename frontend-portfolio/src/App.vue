@@ -53,6 +53,7 @@
       <AboutSection :info="info" />
       <SkillsSection :skills="skills" />
       <ExperienceSection :experiences="experiences" />
+      <EducationSection :education="education" />
       <ProjectsSection :projects="projects" />
       <ResumeSection :info="info" />
       <ContactSection :info="info" :socials="socials" />
@@ -74,6 +75,7 @@ import HeroSection from '@/components/HeroSection.vue'
 import AboutSection from '@/components/AboutSection.vue'
 import SkillsSection from '@/components/SkillsSection.vue'
 import ExperienceSection from '@/components/ExperienceSection.vue'
+import EducationSection from '@/components/EducationSection.vue'
 import ProjectsSection from '@/components/ProjectsSection.vue'
 import ResumeSection from '@/components/ResumeSection.vue'
 import ContactSection from '@/components/ContactSection.vue'
@@ -83,6 +85,7 @@ const projects = ref([])
 const skills = ref([])
 const socials = ref([])
 const experiences = ref([])
+const education = ref([])
 const loading = ref(true)
 const mobileMenu = ref(false)
 
@@ -93,6 +96,7 @@ const navLinks = [
   { href: '#about', label: 'About' },
   { href: '#skills', label: 'Skills' },
   { href: '#experience', label: 'Experience' },
+  { href: '#education', label: 'Education' },
   { href: '#projects', label: 'Projects' },
   { href: '#resume', label: 'Resume' },
   { href: '#contact', label: 'Contact' },
@@ -100,18 +104,20 @@ const navLinks = [
 
 onMounted(async () => {
   try {
-    const [infoRes, projectsRes, skillsRes, socialsRes, expRes] = await Promise.all([
+    const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
       axios.get('/api/portfolio'),
       axios.get('/api/portfolio/projects'),
       axios.get('/api/portfolio/skills'),
       axios.get('/api/portfolio/socials'),
       axios.get('/api/portfolio/experiences'),
+      axios.get('/api/portfolio/education'),
     ])
     info.value = infoRes.data
     projects.value = projectsRes.data
     skills.value = skillsRes.data
     socials.value = socialsRes.data
     experiences.value = expRes.data
+    education.value = eduRes.data
     if (info.value?.name) document.title = `${info.value.name} · Portfolio`
   } catch (e) {
     console.error('Failed to load portfolio data', e)

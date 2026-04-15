@@ -71,6 +71,7 @@ const contentItems = [
   { path: '/portfolio', label: 'Profile & Info', icon: '👤' },
   { path: '/projects', label: 'Projects', icon: '🚀' },
   { path: '/experiences', label: 'Experiences', icon: '💼' },
+  { path: '/education', label: 'Education', icon: '🎓' },
   { path: '/skills', label: 'Skills', icon: '⚙' },
   { path: '/socials', label: 'Social Links', icon: '🔗' },
 ]

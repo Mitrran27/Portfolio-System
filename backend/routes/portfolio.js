@@ -120,4 +120,26 @@ router.delete('/experiences/:id', authenticate, async (req, res) => {
   res.json({ success: true })
 })
 
+// --- Education ---
+router.get('/education', async (req, res) => {
+  const { data, error } = await supabase.from('education').select('*').order('sort_order', { ascending: true })
+  if (error) return res.status(500).json({ error: 'Failed to fetch education' })
+  res.json(data)
+})
+router.post('/education', authenticate, async (req, res) => {
+  const { data, error } = await supabase.from('education').insert([req.body]).select().single()
+  if (error) return res.status(500).json({ error: 'Failed to create education' })
+  res.status(201).json(data)
+})
+router.put('/education/:id', authenticate, async (req, res) => {
+  const { data, error } = await supabase.from('education').update(req.body).eq('id', req.params.id).select().single()
+  if (error) return res.status(500).json({ error: 'Failed to update education' })
+  res.json(data)
+})
+router.delete('/education/:id', authenticate, async (req, res) => {
+  const { error } = await supabase.from('education').delete().eq('id', req.params.id)
+  if (error) return res.status(500).json({ error: 'Failed to delete education' })
+  res.json({ success: true })
+})
+
 export default router
