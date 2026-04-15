@@ -179,3 +179,12 @@ CREATE POLICY "Service write education" ON education FOR ALL USING (auth.role() 
 -- Add project_type and screenshots to projects (v1.1)
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS project_type TEXT DEFAULT 'web-app';
 ALTER TABLE projects ADD COLUMN IF NOT EXISTS screenshots TEXT[] DEFAULT '{}';
+
+-- ============================================
+-- v1.2 ADDITIONS
+-- ============================================
+-- Add logo_bg_color to projects (auto-extracted dominant color)
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS logo_bg_color TEXT DEFAULT '#0d1117';
+
+-- Add UI/UX as valid project_type (no constraint needed — it's free text)
+-- The ui-ux value is now supported by the frontend

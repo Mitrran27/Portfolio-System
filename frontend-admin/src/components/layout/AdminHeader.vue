@@ -1,7 +1,7 @@
 <template>
   <header class="admin-header card-glass border-b border-cyan-400/20 sticky top-0 z-50">
     <div class="flex items-center justify-between px-4 h-16">
-      <!-- Left: burger + breadcrumb -->
+      <!-- Left -->
       <div class="flex items-center gap-3">
         <button @click="$emit('toggle-sidebar')"
           class="text-gray-400 hover:text-cyan-400 transition-colors lg:hidden p-1.5 rounded-lg hover:bg-white/5">
@@ -19,9 +19,9 @@
 
       <!-- Right -->
       <div class="flex items-center gap-2">
-        <!-- Notification Bell — opens messages drawer AND loads messages -->
+        <!-- Notification Bell -->
         <AppTooltip text="Messages">
-          <button @click="openMessages"
+          <button @click="handleBellClick"
             class="relative text-gray-400 hover:text-cyan-400 transition-colors p-2 rounded-lg hover:bg-cyan-400/10">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -46,7 +46,7 @@
           </a>
         </AppTooltip>
 
-        <!-- Admin avatar + logout -->
+        <!-- Avatar + logout -->
         <div class="flex items-center gap-2 pl-3 border-l border-cyan-400/15">
           <div class="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-fuchsia-500 flex items-center justify-center text-black font-bold text-xs flex-shrink-0">
             {{ adminInitial }}
@@ -84,13 +84,12 @@ const unreadCount = computed(() => messagesStore.unreadCount)
 const currentRoute = computed(() => route.name || 'Dashboard')
 const adminInitial = computed(() => auth.admin?.email?.[0]?.toUpperCase() || 'A')
 
-// When bell is clicked: fetch messages first, then open the drawer
-const openMessages = async () => {
+// FIX: Always fetch + always emit open-messages so the drawer actually opens
+const handleBellClick = async () => {
+  // Always fetch fresh messages first
+  await messagesStore.fetch()
+  // Then tell AdminLayout to open the drawer
   emit('open-messages')
-  // Ensure messages are loaded when drawer opens
-  if (!messagesStore.messages.length) {
-    await messagesStore.fetch()
-  }
 }
 
 const handleLogout = () => {
