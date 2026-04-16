@@ -45,7 +45,9 @@ router.get('/', authenticate, async (req, res) => {
   res.json(data)
 })
 
-// GET /api/messages/unread-count — admin only (no rate limit)
+// GET /api/messages/unread-count — admin only
+// IMPORTANT: must be defined BEFORE /:id routes or Express will treat
+// the literal string "unread-count" as a dynamic :id parameter
 router.get('/unread-count', authenticate, async (req, res) => {
   const { count, error } = await supabase
     .from('messages')
@@ -56,6 +58,19 @@ router.get('/unread-count', authenticate, async (req, res) => {
   res.json({ count })
 })
 
+// PATCH /api/messages/mark-all-read — admin only
+// IMPORTANT: must be defined BEFORE /:id/read or Express matches
+// "mark-all-read" as :id = "mark-all-read" and runs the wrong handler
+router.patch('/mark-all-read', authenticate, async (req, res) => {
+  const { error } = await supabase
+    .from('messages')
+    .update({ is_read: true })
+    .eq('is_read', false)
+
+  if (error) return res.status(500).json({ error: 'Failed to update messages' })
+  res.json({ success: true })
+})
+
 // PATCH /api/messages/:id/read — admin only
 router.patch('/:id/read', authenticate, async (req, res) => {
   const { error } = await supabase
@@ -64,17 +79,6 @@ router.patch('/:id/read', authenticate, async (req, res) => {
     .eq('id', req.params.id)
 
   if (error) return res.status(500).json({ error: 'Failed to update message' })
-  res.json({ success: true })
-})
-
-// PATCH /api/messages/mark-all-read — admin only
-router.patch('/mark-all-read', authenticate, async (req, res) => {
-  const { error } = await supabase
-    .from('messages')
-    .update({ is_read: true })
-    .eq('is_read', false)
-
-  if (error) return res.status(500).json({ error: 'Failed to update messages' })
   res.json({ success: true })
 })
 

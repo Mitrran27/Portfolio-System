@@ -7,16 +7,22 @@ export const useMessagesStore = defineStore('messages', () => {
   const loading = ref(false)
   const unreadCount = ref(0)
 
+  // Fetch ALL messages and derive unreadCount from the response —
+  // previously fetch() populated messages but never updated unreadCount,
+  // so the badge and drawer count were always out of sync.
   const fetch = async () => {
     loading.value = true
     try {
       const { data } = await api.get('/messages')
       messages.value = data
+      // Derive count directly from the fresh data — single source of truth
+      unreadCount.value = data.filter(m => !m.is_read).length
     } finally {
       loading.value = false
     }
   }
 
+  // Lightweight poll — only fetches the count number, not full payloads
   const fetchUnreadCount = async () => {
     try {
       const { data } = await api.get('/messages/unread-count')
@@ -35,7 +41,7 @@ export const useMessagesStore = defineStore('messages', () => {
 
   const markAllRead = async () => {
     await api.patch('/messages/mark-all-read')
-    messages.value.forEach(m => m.is_read = true)
+    messages.value.forEach(m => (m.is_read = true))
     unreadCount.value = 0
   }
 
