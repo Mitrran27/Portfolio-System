@@ -15,52 +15,73 @@
 
       <div v-if="!projects?.length" class="text-center text-gray-600 font-exo py-12">No projects added yet.</div>
 
-      <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-        <div v-for="(project, i) in projects" :key="project.id"
-          :class="['project-card card-glass rounded-2xl overflow-hidden group cursor-pointer section-fade', visible ? 'visible' : '']"
-          :style="{ transitionDelay: (i * 0.08) + 's' }"
-          @click="openModal(project)">
+      <template v-else>
+        <!-- Category tabs -->
+        <div class="flex flex-wrap justify-center gap-2 mb-10">
+          <button
+            v-for="cat in availableCategories"
+            :key="cat.value"
+            @click="activeCategory = cat.value"
+            class="px-4 py-2 rounded-full font-exo text-sm transition-all border"
+            :class="activeCategory === cat.value
+              ? 'border-cyan-400 bg-cyan-400/15 text-cyan-300'
+              : 'border-gray-700 bg-transparent text-gray-500 hover:border-gray-500 hover:text-gray-300'">
+            {{ cat.emoji }} {{ cat.label }}
+            <span class="ml-1.5 text-xs opacity-60">({{ cat.count }})</span>
+          </button>
+        </div>
 
-          <!-- Logo / Thumbnail with auto bg color -->
-          <div class="project-img relative overflow-hidden"
-            :style="{ backgroundColor: project.image_url ? (project.logo_bg_color || '#0d1117') : undefined }">
-            <img v-if="project.image_url" :src="project.image_url" :alt="project.title"
-              class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
-            <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
-              <span class="text-4xl opacity-20">🚀</span>
-            </div>
+        <!-- Projects grid — filtered by active category -->
+        <Transition name="fade-grid" mode="out-in">
+          <div :key="activeCategory" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div v-for="(project, i) in filteredProjects" :key="project.id"
+              :class="['project-card card-glass rounded-2xl overflow-hidden group cursor-pointer section-fade', visible ? 'visible' : '']"
+              :style="{ transitionDelay: (i * 0.08) + 's' }"
+              @click="openModal(project)">
 
-            <!-- Hover overlay -->
-            <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-              <span class="text-cyan-400 font-exo text-sm border border-cyan-400/50 px-4 py-2 rounded-lg">View Details</span>
-            </div>
+              <!-- Logo / Thumbnail with auto bg color -->
+              <div class="project-img relative overflow-hidden"
+                :style="{ backgroundColor: project.image_url ? (project.logo_bg_color || '#0d1117') : undefined }">
+                <img v-if="project.image_url" :src="project.image_url" :alt="project.title"
+                  class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
+                  <span class="text-4xl opacity-20">🚀</span>
+                </div>
 
-            <!-- Project type icon badge (bottom-left) with tooltip -->
-            <div class="absolute top-2 left-2">
-              <div class="type-tooltip-wrapper" :data-tooltip="typeLabel(project.project_type)">
-                <span :class="typeIconBg(project.project_type)" class="flex items-center justify-center w-7 h-7 rounded-lg backdrop-blur-sm">
-                  <component :is="typeIconComponent(project.project_type)" class="w-4 h-4" />
-                </span>
-                <span class="type-tooltip">{{ typeLabel(project.project_type) }}</span>
+                <!-- Hover overlay -->
+                <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                  <span class="text-cyan-400 font-exo text-sm border border-cyan-400/50 px-4 py-2 rounded-lg">View Details</span>
+                </div>
+
+                <!-- Type badges (multi) -->
+                <div class="absolute top-2 left-2 flex gap-1">
+                  <div v-for="t in projectTypes(project)" :key="t"
+                    class="type-tooltip-wrapper" :data-tooltip="typeLabel(t)">
+                    <span :class="typeIconBg(t)" class="flex items-center justify-center w-7 h-7 rounded-lg backdrop-blur-sm">
+                      <component :is="typeIconComponent(t)" class="w-4 h-4" />
+                    </span>
+                    <span class="type-tooltip">{{ typeLabel(t) }}</span>
+                  </div>
+                </div>
+
+                <div v-if="project.featured" class="absolute top-2 right-2 text-xs bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 px-2 py-0.5 rounded font-exo backdrop-blur-sm">
+                  Featured
+                </div>
+              </div>
+
+              <!-- Info -->
+              <div class="p-4">
+                <h3 class="text-white font-exo font-semibold text-sm mb-1">{{ project.title }}</h3>
+                <p class="text-gray-400 text-xs font-exo leading-relaxed line-clamp-2 mb-3">{{ project.description }}</p>
+                <div class="flex flex-wrap gap-1">
+                  <span v-for="tech in (project.tech_stack || []).slice(0, 4)" :key="tech" class="tech-tag">{{ tech }}</span>
+                  <span v-if="(project.tech_stack || []).length > 4" class="tech-tag">+{{ project.tech_stack.length - 4 }}</span>
+                </div>
               </div>
             </div>
-
-            <div v-if="project.featured" class="absolute top-2 right-2 text-xs bg-cyan-400/20 border border-cyan-400/40 text-cyan-400 px-2 py-0.5 rounded font-exo backdrop-blur-sm">
-              Featured
-            </div>
           </div>
-
-          <!-- Info -->
-          <div class="p-4">
-            <h3 class="text-white font-exo font-semibold text-sm mb-1">{{ project.title }}</h3>
-            <p class="text-gray-400 text-xs font-exo leading-relaxed line-clamp-2 mb-3">{{ project.description }}</p>
-            <div class="flex flex-wrap gap-1">
-              <span v-for="tech in (project.tech_stack || []).slice(0, 4)" :key="tech" class="tech-tag">{{ tech }}</span>
-              <span v-if="(project.tech_stack || []).length > 4" class="tech-tag">+{{ project.tech_stack.length - 4 }}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+        </Transition>
+      </template>
     </div>
 
     <!-- Project Modal -->
@@ -72,11 +93,12 @@
             <div>
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="text-white font-orbitron font-bold text-base">{{ activeProject.title }}</h3>
-                <!-- Type badge with icon -->
-                <span v-if="activeProject.project_type" :class="typeStyle(activeProject.project_type)"
+                <!-- All type badges -->
+                <span v-for="t in projectTypes(activeProject)" :key="t"
+                  :class="typeStyle(t)"
                   class="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded font-exo">
-                  <component :is="typeIconComponent(activeProject.project_type)" class="w-3.5 h-3.5" />
-                  {{ typeLabel(activeProject.project_type) }}
+                  <component :is="typeIconComponent(t)" class="w-3.5 h-3.5" />
+                  {{ typeLabel(t) }}
                 </span>
               </div>
               <div v-if="activeProject.featured" class="text-xs text-cyan-400 font-exo mt-0.5">Featured Project</div>
@@ -104,7 +126,6 @@
             <div v-if="allImages.length > 1" class="absolute top-2 right-2 bg-black/60 text-white text-xs font-exo px-2 py-0.5 rounded">
               {{ activeSlide + 1 }} / {{ allImages.length }}
             </div>
-            <!-- Zoom hint -->
             <div class="absolute bottom-2 right-2 bg-black/60 text-gray-400 text-xs font-exo px-2 py-0.5 rounded flex items-center gap-1">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
               Click to enlarge
@@ -166,17 +187,60 @@
 import { ref, computed, h, defineComponent } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
 
-defineProps({ projects: Array })
+const props = defineProps({ projects: Array })
 
 const sectionRef = ref(null)
 const visible = ref(false)
 const activeProject = ref(null)
 const activeSlide = ref(0)
 const lightboxSrc = ref(null)
+const activeCategory = ref('all')
 
 useIntersectionObserver(sectionRef, ([{ isIntersecting }]) => {
   if (isIntersecting) visible.value = true
 }, { threshold: 0.05 })
+
+// ── Type helpers ──────────────────────────────────────────────────────────────
+const ALL_TYPES = [
+  { value: 'all',        label: 'All',          emoji: '✦' },
+  { value: 'web-app',    label: 'Web App',       emoji: '🌐' },
+  { value: 'website',    label: 'Website',       emoji: '🖥' },
+  { value: 'mobile-app', label: 'Mobile App',    emoji: '📱' },
+  { value: 'ui-ux',      label: 'UI/UX Design',  emoji: '🎨' },
+  { value: 'ai',         label: 'AI',            emoji: '🤖' },
+]
+
+/** Normalise a project's types — handles both old single string and new array */
+const projectTypes = (project) => {
+  if (project.project_types?.length) return project.project_types
+  if (project.project_type) return [project.project_type]
+  return []
+}
+
+/** Tabs: only show categories that have at least one project */
+const availableCategories = computed(() => {
+  if (!props.projects?.length) return []
+  const counts = {}
+  let total = 0
+  for (const p of props.projects) {
+    total++
+    for (const t of projectTypes(p)) {
+      counts[t] = (counts[t] || 0) + 1
+    }
+  }
+  const tabs = [{ value: 'all', label: 'All', emoji: '✦', count: total }]
+  for (const opt of ALL_TYPES.slice(1)) {
+    if (counts[opt.value]) tabs.push({ ...opt, count: counts[opt.value] })
+  }
+  return tabs
+})
+
+const filteredProjects = computed(() => {
+  if (!props.projects) return []
+  if (activeCategory.value === 'all') return props.projects
+  return props.projects.filter(p => projectTypes(p).includes(activeCategory.value))
+})
+
 
 const allImages = computed(() => {
   if (!activeProject.value) return []
@@ -201,21 +265,24 @@ const IconMonitor = defineComponent({ render: () => h('svg', { fill: 'none', str
 const IconPencil = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' })
 ]) })
+const IconAI = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1-.28 2.28-1.28 1.28L19.8 15.3M5 14.5l-1.402 1.402c-1 1 .28 2.28 1.28 1.28L5 14.5' })
+]) })
 
 const typeIconComponent = (type) => {
-  const map = { 'mobile-app': IconMobile, 'web-app': IconGlobe, 'website': IconMonitor, 'ui-ux': IconPencil }
+  const map = { 'mobile-app': IconMobile, 'web-app': IconGlobe, 'website': IconMonitor, 'ui-ux': IconPencil, 'ai': IconAI }
   return map[type] || IconGlobe
 }
 const typeIconBg = (type) => {
-  const map = { 'web-app': 'bg-cyan-400/25 text-cyan-400', 'mobile-app': 'bg-fuchsia-400/25 text-fuchsia-400', 'website': 'bg-amber-400/25 text-amber-400', 'ui-ux': 'bg-pink-400/25 text-pink-400' }
+  const map = { 'web-app': 'bg-cyan-400/25 text-cyan-400', 'mobile-app': 'bg-fuchsia-400/25 text-fuchsia-400', 'website': 'bg-amber-400/25 text-amber-400', 'ui-ux': 'bg-pink-400/25 text-pink-400', 'ai': 'bg-violet-400/25 text-violet-400' }
   return map[type] || 'bg-gray-400/25 text-gray-400'
 }
 const typeLabel = (type) => {
-  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website', 'ui-ux': 'UI/UX Design' }
+  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website', 'ui-ux': 'UI/UX Design', 'ai': 'AI' }
   return map[type] || type
 }
 const typeStyle = (type) => {
-  const map = { 'web-app': 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30', 'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400 border border-fuchsia-400/30', 'website': 'bg-amber-400/20 text-amber-400 border border-amber-400/30', 'ui-ux': 'bg-pink-400/20 text-pink-400 border border-pink-400/30' }
+  const map = { 'web-app': 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30', 'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400 border border-fuchsia-400/30', 'website': 'bg-amber-400/20 text-amber-400 border border-amber-400/30', 'ui-ux': 'bg-pink-400/20 text-pink-400 border border-pink-400/30', 'ai': 'bg-violet-400/20 text-violet-400 border border-violet-400/30' }
   return map[type] || 'bg-gray-400/20 text-gray-400'
 }
 
@@ -254,6 +321,10 @@ const closeLightbox = () => { lightboxSrc.value = null }
   z-index: 100;
 }
 .type-tooltip-wrapper:hover .type-tooltip { opacity: 1; }
+
+/* Category tab transition */
+.fade-grid-enter-active, .fade-grid-leave-active { transition: opacity 0.2s ease, transform 0.2s ease; }
+.fade-grid-enter-from, .fade-grid-leave-to { opacity: 0; transform: translateY(6px); }
 
 /* Modal */
 .modal-backdrop {

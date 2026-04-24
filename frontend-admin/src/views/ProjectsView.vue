@@ -28,11 +28,11 @@
           <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
             <span class="text-4xl opacity-20">🚀</span>
           </div>
-          <!-- Type badge overlay -->
-          <div class="absolute top-2 left-2">
-            <AppTooltip :text="typeLabel(project.project_type)">
-              <span :class="typeIconBg(project.project_type)" class="flex items-center justify-center w-7 h-7 rounded-lg">
-                <component :is="typeIconComponent(project.project_type)" class="w-4 h-4" />
+          <!-- Type badges overlay (multi) -->
+          <div class="absolute top-2 left-2 flex gap-1 flex-wrap max-w-[calc(100%-1rem)]">
+            <AppTooltip v-for="t in (project.project_types || [project.project_type]).filter(Boolean)" :key="t" :text="typeLabel(t)">
+              <span :class="typeIconBg(t)" class="flex items-center justify-center w-7 h-7 rounded-lg">
+                <component :is="typeIconComponent(t)" class="w-4 h-4" />
               </span>
             </AppTooltip>
           </div>
@@ -41,9 +41,10 @@
         <div class="p-5">
           <div class="flex items-start justify-between mb-3">
             <h3 class="text-white font-exo font-semibold">{{ project.title }}</h3>
-            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2">
-              <span v-if="project.project_type" :class="typeStyle(project.project_type)" class="text-xs px-2 py-0.5 rounded font-exo">
-                {{ typeLabel(project.project_type) }}
+            <div class="flex items-center gap-1.5 flex-shrink-0 ml-2 flex-wrap justify-end">
+              <span v-for="t in (project.project_types || [project.project_type]).filter(Boolean)" :key="t"
+                :class="typeStyle(t)" class="text-xs px-2 py-0.5 rounded font-exo">
+                {{ typeLabel(t) }}
               </span>
               <span v-if="project.featured" class="text-xs bg-cyan-400/20 text-cyan-400 px-2 py-0.5 rounded font-exo">Featured</span>
             </div>
@@ -59,6 +60,7 @@
             📷 {{ project.screenshots.length }} screenshot{{ project.screenshots.length > 1 ? 's' : '' }}
           </div>
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-cyan-400/10">
+            <span class="text-xs text-gray-600 font-exo">#{{ project.sort_order }}</span>
             <a v-if="project.live_url" :href="project.live_url" target="_blank" class="text-cyan-400 hover:underline text-xs font-exo">↗ Live</a>
             <a v-if="project.github_url" :href="project.github_url" target="_blank" class="text-gray-400 hover:text-white text-xs font-exo ml-auto">GitHub →</a>
             <button @click="openModal(project)" class="text-gray-500 hover:text-cyan-400 text-xs font-exo transition-colors ml-2">Edit</button>
@@ -83,27 +85,35 @@
             <textarea v-model="form.description" rows="3" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm resize-none" placeholder="What does this project do?" />
           </div>
 
-          <!-- Project Type -->
-          <div>
-            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Project Type</label>
-            <select v-model="form.project_type" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm">
-              <option value="web-app">🌐 Web App</option>
-              <option value="mobile-app">📱 Mobile App</option>
-              <option value="website">🖥 Website</option>
-              <option value="ui-ux">🎨 UI/UX Design</option>
-            </select>
+          <!-- Project Types — multi-select checkboxes -->
+          <div class="col-span-2">
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Project Type(s) <span class="text-gray-500 text-xs normal-case">(select all that apply)</span></label>
+            <div class="flex flex-wrap gap-2">
+              <label v-for="opt in PROJECT_TYPE_OPTIONS" :key="opt.value"
+                class="flex items-center gap-2 cursor-pointer px-3 py-2 rounded-lg border transition-all font-exo text-sm select-none"
+                :class="form.project_types.includes(opt.value)
+                  ? 'border-cyan-400/60 bg-cyan-400/10 text-cyan-300'
+                  : 'border-gray-700 bg-transparent text-gray-400 hover:border-gray-500'">
+                <input type="checkbox" class="hidden" :value="opt.value" v-model="form.project_types" />
+                <span>{{ opt.emoji }} {{ opt.label }}</span>
+              </label>
+            </div>
           </div>
 
           <div>
-            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Sort Order</label>
-            <input v-model.number="form.sort_order" type="number" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" />
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">
+              Sort Order
+              <span class="text-gray-500 text-xs normal-case ml-1">(1 = first · inserting bumps others down)</span>
+            </label>
+            <input v-model.number="form.sort_order" type="number" min="1" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" />
           </div>
 
           <div>
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">Live URL</label>
             <input v-model="form.live_url" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="https://..." />
           </div>
-          <div>
+
+          <div class="col-span-2">
             <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">GitHub URL</label>
             <input v-model="form.github_url" class="input-neon w-full px-4 py-3 rounded-lg font-exo text-sm" placeholder="https://github.com/..." />
           </div>
@@ -224,6 +234,15 @@ const uploadingLogo = ref(false)
 const uploadingScreenshot = ref(false)
 const uploadingCount = ref(0)
 
+// ── Project type options (4 original + AI) ───────────────────────────────────
+const PROJECT_TYPE_OPTIONS = [
+  { value: 'web-app',     label: 'Web App',      emoji: '🌐' },
+  { value: 'website',     label: 'Website',      emoji: '🖥' },
+  { value: 'mobile-app',  label: 'Mobile App',   emoji: '📱' },
+  { value: 'ui-ux',       label: 'UI/UX Design', emoji: '🎨' },
+  { value: 'ai',          label: 'AI',           emoji: '🤖' },
+]
+
 // ── SVG icon components ──────────────────────────────────────────────────────
 const IconMobile = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z' })
@@ -241,31 +260,37 @@ const IconPencil = defineComponent({ render: () => h('svg', { fill: 'none', stro
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z' })
 ]) })
 
+const IconAI = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', 'stroke-width': '2', d: 'M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1 1-.28 2.28-1.28 1.28L19.8 15.3M5 14.5l-1.402 1.402c-1 1 .28 2.28 1.28 1.28L5 14.5' })
+]) })
+
 const typeIconComponent = (type) => {
-  const map = { 'mobile-app': IconMobile, 'web-app': IconGlobe, 'website': IconMonitor, 'ui-ux': IconPencil }
+  const map = { 'mobile-app': IconMobile, 'web-app': IconGlobe, 'website': IconMonitor, 'ui-ux': IconPencil, 'ai': IconAI }
   return map[type] || IconGlobe
 }
 
 const typeIconBg = (type) => {
   const map = {
-    'web-app': 'bg-cyan-400/20 text-cyan-400',
+    'web-app':    'bg-cyan-400/20 text-cyan-400',
     'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400',
-    'website': 'bg-amber-400/20 text-amber-400',
-    'ui-ux': 'bg-pink-400/20 text-pink-400'
+    'website':    'bg-amber-400/20 text-amber-400',
+    'ui-ux':      'bg-pink-400/20 text-pink-400',
+    'ai':         'bg-violet-400/20 text-violet-400',
   }
   return map[type] || 'bg-gray-400/20 text-gray-400'
 }
 
 const typeLabel = (type) => {
-  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website', 'ui-ux': 'UI/UX Design' }
+  const map = { 'web-app': 'Web App', 'mobile-app': 'Mobile App', 'website': 'Website', 'ui-ux': 'UI/UX Design', 'ai': 'AI' }
   return map[type] || type
 }
 const typeStyle = (type) => {
   const map = {
-    'web-app': 'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30',
+    'web-app':    'bg-cyan-400/20 text-cyan-400 border border-cyan-400/30',
     'mobile-app': 'bg-fuchsia-400/20 text-fuchsia-400 border border-fuchsia-400/30',
-    'website': 'bg-amber-400/20 text-amber-400 border border-amber-400/30',
-    'ui-ux': 'bg-pink-400/20 text-pink-400 border border-pink-400/30'
+    'website':    'bg-amber-400/20 text-amber-400 border border-amber-400/30',
+    'ui-ux':      'bg-pink-400/20 text-pink-400 border border-pink-400/30',
+    'ai':         'bg-violet-400/20 text-violet-400 border border-violet-400/30',
   }
   return map[type] || 'bg-gray-400/20 text-gray-400'
 }
@@ -282,7 +307,6 @@ function extractDominantColor(base64) {
       const data = ctx.getImageData(0, 0, 50, 50).data
       let r = 0, g = 0, b = 0, count = 0
       for (let i = 0; i < data.length; i += 16) {
-        // Skip near-white and near-transparent pixels
         const alpha = data[i + 3]
         const brightness = (data[i] + data[i+1] + data[i+2]) / 3
         if (alpha > 50 && brightness < 240) {
@@ -291,7 +315,6 @@ function extractDominantColor(base64) {
       }
       if (count === 0) return resolve('#0d1117')
       r = Math.round(r / count); g = Math.round(g / count); b = Math.round(b / count)
-      // Darken significantly so it's a bg, not competing with the logo
       r = Math.round(r * 0.15); g = Math.round(g * 0.15); b = Math.round(b * 0.15)
       resolve(`rgb(${r},${g},${b})`)
     }
@@ -311,7 +334,6 @@ const onLogoUpload = async (e) => {
     fd.append('file', file)
     const { data } = await api.post('/upload/project-image', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
     form.value.image_url = data.url
-    // Auto extract bg color
     form.value.logo_bg_color = await extractDominantColor(data.url)
   } catch { toast.error('Failed to upload logo') }
   finally { uploadingLogo.value = false; e.target.value = '' }
@@ -345,12 +367,26 @@ const removeScreenshot = (idx) => {
 }
 
 // ── Modal / CRUD ─────────────────────────────────────────────────────────────
-const defaultForm = () => ({ title: '', description: '', live_url: '', github_url: '', image_url: '', logo_bg_color: '', featured: false, sort_order: 0, project_type: 'web-app', screenshots: [] })
+const defaultForm = () => ({
+  title: '', description: '', live_url: '', github_url: '',
+  image_url: '', logo_bg_color: '', featured: false,
+  sort_order: null,  // null = auto (backend will append at end)
+  project_types: [],
+  screenshots: []
+})
 const form = ref(defaultForm())
 
 const openModal = (project = null) => {
   editing.value = project?.id || null
-  form.value = project ? { ...project, screenshots: project.screenshots ? [...project.screenshots] : [] } : defaultForm()
+  if (project) {
+    // Normalise: if only old project_type exists, seed into project_types
+    const types = project.project_types?.length
+      ? [...project.project_types]
+      : project.project_type ? [project.project_type] : []
+    form.value = { ...project, project_types: types, screenshots: project.screenshots ? [...project.screenshots] : [] }
+  } else {
+    form.value = defaultForm()
+  }
   techInput.value = project?.tech_stack?.join(', ') || ''
   showModal.value = true
 }
@@ -360,7 +396,11 @@ const save = async () => {
   const payload = {
     ...form.value,
     tech_stack: techInput.value.split(',').map(t => t.trim()).filter(Boolean),
+    // Keep legacy project_type as the first selected type for backwards compat
+    project_type: form.value.project_types[0] || null,
   }
+  // Remove null sort_order so backend defaults to end
+  if (!payload.sort_order) delete payload.sort_order
   try {
     if (editing.value) await store.updateProject(editing.value, payload)
     else await store.createProject(payload)

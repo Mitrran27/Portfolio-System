@@ -41,21 +41,70 @@ router.put('/', authenticate, async (req, res) => {
 })
 
 // --- Projects ---
+
+/**
+ * Helper: bump sort_order of all projects whose sort_order >= newOrder,
+ * excluding a specific project id (used on update so we don't shift ourselves).
+ */
+async function bumpSortOrders(newOrder, excludeId = null) {
+  // Fetch all projects that would collide
+  let query = supabase
+    .from('projects')
+    .select('id, sort_order')
+    .gte('sort_order', newOrder)
+    .order('sort_order', { ascending: true })
+
+  if (excludeId) query = query.neq('id', excludeId)
+
+  const { data: colliding } = await query
+  if (!colliding || colliding.length === 0) return
+
+  // Increment each by 1 (in order to avoid unique constraint issues if any)
+  for (const p of colliding) {
+    await supabase.from('projects').update({ sort_order: p.sort_order + 1 }).eq('id', p.id)
+  }
+}
+
 router.get('/projects', async (req, res) => {
   const { data, error } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
   if (error) return res.status(500).json({ error: 'Failed to fetch projects' })
   res.json(data)
 })
+
 router.post('/projects', authenticate, async (req, res) => {
-  const { data, error } = await supabase.from('projects').insert([req.body]).select().single()
+  const body = { ...req.body }
+
+  // Default sort_order: place at end if not specified or 0
+  if (!body.sort_order || body.sort_order === 0) {
+    const { data: last } = await supabase
+      .from('projects')
+      .select('sort_order')
+      .order('sort_order', { ascending: false })
+      .limit(1)
+    body.sort_order = last?.[0]?.sort_order ? last[0].sort_order + 1 : 1
+  } else {
+    // Bump existing projects out of the way
+    await bumpSortOrders(body.sort_order)
+  }
+
+  const { data, error } = await supabase.from('projects').insert([body]).select().single()
   if (error) return res.status(500).json({ error: 'Failed to create project' })
   res.status(201).json(data)
 })
+
 router.put('/projects/:id', authenticate, async (req, res) => {
-  const { data, error } = await supabase.from('projects').update(req.body).eq('id', req.params.id).select().single()
+  const body = { ...req.body }
+
+  // If sort_order changed, bump others out of the way
+  if (body.sort_order && body.sort_order >= 1) {
+    await bumpSortOrders(body.sort_order, req.params.id)
+  }
+
+  const { data, error } = await supabase.from('projects').update(body).eq('id', req.params.id).select().single()
   if (error) return res.status(500).json({ error: 'Failed to update project' })
   res.json(data)
 })
+
 router.delete('/projects/:id', authenticate, async (req, res) => {
   const { error } = await supabase.from('projects').delete().eq('id', req.params.id)
   if (error) return res.status(500).json({ error: 'Failed to delete project' })
