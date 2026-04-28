@@ -62,7 +62,10 @@
     <footer class="relative z-10 border-t border-cyan-400/10 py-8 text-center">
       <p class="text-gray-600 text-sm font-exo">
         Built with <span class="text-cyan-400">Vue.js</span> + <span class="text-fuchsia-400">Node.js</span> + <span class="text-cyan-400">Supabase</span>
-        · © {{ new Date().getFullYear() }} {{ info?.name || '' }}
+        · © {{ new Date().getFullYear() }} {{ info?.name || '' }} · All rights reserved
+      </p>
+      <p class="text-white/20 text-xs font-body">
+        Built with Vue.js · Node.js · Supabase
       </p>
     </footer>
   </div>
