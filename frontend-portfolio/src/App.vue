@@ -113,7 +113,7 @@ onMounted(async () => {
       axios.get('/api/portfolio/education'),
     ])
     info.value = infoRes.data
-    projects.value = projectsRes.data
+    projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
     skills.value = skillsRes.data
     socials.value = socialsRes.data
     experiences.value = expRes.data

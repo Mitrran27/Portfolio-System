@@ -401,6 +401,25 @@ const save = async () => {
   }
   // Remove null sort_order so backend defaults to end
   if (!payload.sort_order) delete payload.sort_order
+
+  // ── Collision check: warn if another project already holds this sort_order ──
+  if (payload.sort_order) {
+    const occupant = store.projects.find(
+      p => p.sort_order === payload.sort_order && p.id !== editing.value
+    )
+    if (occupant) {
+      const isEdit = !!editing.value
+      const currentProject = editing.value
+        ? store.projects.find(p => p.id === editing.value)
+        : null
+      const confirmMsg = isEdit
+        ? `"${occupant.title}" is currently in position ${payload.sort_order}. Swapping will move it to position ${currentProject?.sort_order ?? '(end)'}. Continue?`
+        : `"${occupant.title}" is already in position ${payload.sort_order}. It and all projects below will shift down by 1. Continue?`
+      const ok = await confirmRef.value?.open(confirmMsg, 'Yes, proceed')
+      if (!ok) { saving.value = false; return }
+    }
+  }
+
   try {
     if (editing.value) await store.updateProject(editing.value, payload)
     else await store.createProject(payload)

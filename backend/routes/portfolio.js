@@ -43,26 +43,40 @@ router.put('/', authenticate, async (req, res) => {
 // --- Projects ---
 
 /**
- * Helper: bump sort_order of all projects whose sort_order >= newOrder,
- * excluding a specific project id (used on update so we don't shift ourselves).
+ * On POST (new project): if the chosen sort_order is taken, shift everyone
+ * at that position and above down by 1 to make room.
  */
-async function bumpSortOrders(newOrder, excludeId = null) {
-  // Fetch all projects that would collide
-  let query = supabase
+async function shiftDown(fromOrder) {
+  const { data: affected } = await supabase
     .from('projects')
     .select('id, sort_order')
-    .gte('sort_order', newOrder)
-    .order('sort_order', { ascending: true })
+    .gte('sort_order', fromOrder)
+    .order('sort_order', { ascending: false }) // descending so we don't collide while updating
 
-  if (excludeId) query = query.neq('id', excludeId)
+  if (!affected || affected.length === 0) return
 
-  const { data: colliding } = await query
-  if (!colliding || colliding.length === 0) return
-
-  // Increment each by 1 (in order to avoid unique constraint issues if any)
-  for (const p of colliding) {
+  for (const p of affected) {
     await supabase.from('projects').update({ sort_order: p.sort_order + 1 }).eq('id', p.id)
   }
+}
+
+/**
+ * On PUT (edit project): swap the two projects' sort_orders so positions
+ * stay stable — no cascading drift.
+ */
+async function swapSortOrder(projectId, newOrder, oldOrder) {
+  // Find the project currently sitting at newOrder (if any)
+  const { data: occupant } = await supabase
+    .from('projects')
+    .select('id, sort_order')
+    .eq('sort_order', newOrder)
+    .neq('id', projectId)
+    .single()
+
+  if (!occupant) return // position is free, nothing to swap
+
+  // Give the occupant the old position of the project being moved
+  await supabase.from('projects').update({ sort_order: oldOrder }).eq('id', occupant.id)
 }
 
 router.get('/projects', async (req, res) => {
@@ -83,8 +97,8 @@ router.post('/projects', authenticate, async (req, res) => {
       .limit(1)
     body.sort_order = last?.[0]?.sort_order ? last[0].sort_order + 1 : 1
   } else {
-    // Bump existing projects out of the way
-    await bumpSortOrders(body.sort_order)
+    // Shift existing projects at that position and below down by 1
+    await shiftDown(body.sort_order)
   }
 
   const { data, error } = await supabase.from('projects').insert([body]).select().single()
@@ -95,9 +109,18 @@ router.post('/projects', authenticate, async (req, res) => {
 router.put('/projects/:id', authenticate, async (req, res) => {
   const body = { ...req.body }
 
-  // If sort_order changed, bump others out of the way
+  // If sort_order is being changed, swap with the occupant at that position
   if (body.sort_order && body.sort_order >= 1) {
-    await bumpSortOrders(body.sort_order, req.params.id)
+    // Fetch current sort_order of this project so we know what to give the occupant
+    const { data: current } = await supabase
+      .from('projects')
+      .select('sort_order')
+      .eq('id', req.params.id)
+      .single()
+
+    if (current && current.sort_order !== body.sort_order) {
+      await swapSortOrder(req.params.id, body.sort_order, current.sort_order)
+    }
   }
 
   const { data, error } = await supabase.from('projects').update(body).eq('id', req.params.id).select().single()

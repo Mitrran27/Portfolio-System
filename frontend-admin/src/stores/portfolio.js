@@ -23,7 +23,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
         api.get('/portfolio/education'),
       ])
       info.value = infoRes.data
-      projects.value = projectsRes.data
+      projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
       skills.value = skillsRes.data
       socials.value = socialsRes.data
       experiences.value = expRes.data
@@ -39,15 +39,21 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   }
 
   // Projects
+  const refreshProjects = async () => {
+    const { data } = await api.get('/portfolio/projects')
+    // Always sort by sort_order ascending after any mutation so the UI stays in sync
+    projects.value = (data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
+  }
   const createProject = async (payload) => {
     const { data } = await api.post('/portfolio/projects', payload)
-    projects.value.push(data)
+    // Re-fetch all so bumped sort_orders from other rows are reflected
+    await refreshProjects()
     return data
   }
   const updateProject = async (id, payload) => {
-    const { data } = await api.put(`/portfolio/projects/${id}`, payload)
-    const idx = projects.value.findIndex(p => p.id === id)
-    if (idx !== -1) projects.value[idx] = data
+    await api.put(`/portfolio/projects/${id}`, payload)
+    // Re-fetch all so bumped sort_orders from other rows are reflected
+    await refreshProjects()
   }
   const deleteProject = async (id) => {
     await api.delete(`/portfolio/projects/${id}`)
@@ -110,7 +116,7 @@ export const usePortfolioStore = defineStore('portfolio', () => {
   return {
     info, projects, skills, socials, experiences, education, loading,
     fetchAll, updateInfo,
-    createProject, updateProject, deleteProject,
+    createProject, updateProject, deleteProject, refreshProjects,
     createSkill, updateSkill, deleteSkill,
     updateSocials,
     createExperience, updateExperience, deleteExperience,
