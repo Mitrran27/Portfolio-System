@@ -1,33 +1,29 @@
 <template>
-  <section id="skills" class="py-24 px-6 border-t border-white/[0.05]" ref="sectionRef">
+  <section id="skills" class="py-24 px-6" ref="sectionRef">
     <div class="max-w-6xl mx-auto">
-
-      <!-- Header -->
-      <div class="mb-16">
-        <p class="accent-line text-white/30 text-xs font-body tracking-[0.2em] uppercase mb-4">What I Know</p>
-        <h2 class="font-display text-white" style="font-size:clamp(2rem,4.5vw,3.5rem)">
-          My <em>Skills</em>
+      <div class="text-center mb-14">
+        <h2 class="font-orbitron font-bold text-gray-900" style="font-size:clamp(1.8rem,4vw,2.8rem)">
+          <span class="text-blue-700 neon-text">My</span>
+          <span class="text-gray-900"> Skills</span>
         </h2>
+        <div class="flex items-center justify-center gap-3 mt-4">
+          <div class="h-px w-16 bg-gradient-to-r from-transparent to-blue-500" />
+          <div class="w-2 h-2 rounded-full bg-cyan-400" />
+          <div class="h-px w-16 bg-gradient-to-l from-transparent to-blue-500" />
+        </div>
       </div>
 
-      <div v-if="!skills?.length" class="text-white/20 font-body py-12">No skills added yet.</div>
+      <div v-if="!skills?.length" class="text-center text-gray-400 font-exo py-12">No skills added yet.</div>
 
-      <div v-else class="space-y-12">
-        <div v-for="(group, cat) in grouped" :key="cat"
-          :class="['section-fade', visible ? 'visible' : '']">
-
-          <!-- Category label -->
-          <div class="flex items-center gap-4 mb-6">
-            <span class="text-red-600 text-[10px] font-body tracking-[0.2em] uppercase">{{ cat }}</span>
-            <div class="flex-1 h-px bg-white/[0.06]" />
-          </div>
-
+      <div v-else class="space-y-10">
+        <div v-for="(group, cat) in grouped" :key="cat" :class="['section-fade', visible ? 'visible' : '']">
+          <h3 class="text-red-600 font-orbitron text-sm tracking-widest mb-5 uppercase">{{ cat }}</h3>
           <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div v-for="skill in group" :key="skill.id"
-              class="group p-5 border border-white/[0.07] rounded hover:border-white/15 transition-all">
-              <div class="flex items-center justify-between mb-4">
-                <span class="text-white/80 font-body text-sm">{{ skill.name }}</span>
-                <span class="text-red-600 font-body text-xs tabular-nums">{{ skill.level }}%</span>
+              class="card-glass rounded-xl p-5 hover:border-blue-500/30 transition-all group">
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-gray-900 font-exo text-sm font-medium">{{ skill.name }}</span>
+                <span class="text-blue-700 font-orbitron text-sm">{{ skill.level }}%</span>
               </div>
               <div class="skill-bar">
                 <div class="skill-bar-fill" :style="{ width: visible ? skill.level + '%' : '0%' }" />

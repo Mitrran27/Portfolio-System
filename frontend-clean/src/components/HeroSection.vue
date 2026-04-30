@@ -1,57 +1,48 @@
 <template>
-  <section id="home" class="min-h-screen flex items-center px-6 pt-20 pb-16 relative overflow-hidden">
-    <!-- Vertical red accent line -->
-    <div class="absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-red-700/40 to-transparent hidden lg:block" />
+  <section id="home" class="min-h-screen flex items-center px-4 pt-20 pb-12 relative overflow-hidden">
+    <div class="scan-line" />
 
     <div class="max-w-6xl mx-auto w-full">
-      <div class="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+      <div class="flex flex-col-reverse lg:grid lg:grid-cols-2 gap-8 lg:gap-12 items-center">
 
         <!-- Left: Text -->
-        <div class="space-y-8 text-center lg:text-left">
-
-          <!-- Available badge -->
+        <div class="space-y-5 text-center lg:text-left">
           <Transition name="fade-slide">
             <div v-if="info?.available_for_work"
-              class="inline-flex items-center gap-2 px-4 py-1.5 border border-white/10 text-white/50 text-xs font-body tracking-widest uppercase rounded-sm">
-              <span class="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse" />
+              class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-green-500/40 bg-green-900/20 text-green-400 text-xs font-exo">
+              <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               Available for work
             </div>
           </Transition>
 
-          <!-- Name + title -->
-          <div class="space-y-3">
-            <p class="text-white/30 font-body text-xs tracking-[0.2em] uppercase">Hello, I'm</p>
-            <h1 class="font-display leading-[1.05] text-white" style="font-size:clamp(2.4rem,6vw,5rem)">
-              {{ info?.name || 'Your Name' }}
+          <div>
+            <p class="text-gray-400 font-exo text-xs mb-2 tracking-widest uppercase">Hello, I'm</p>
+            <h1 class="font-orbitron font-black leading-tight" style="font-size:clamp(1.9rem,5vw,3.8rem)">
+              <span class="text-gray-900">{{ info?.name || 'Your Name' }}</span>
             </h1>
-            <div class="flex items-center gap-3 justify-center lg:justify-start">
-              <div class="w-6 h-px bg-red-600 flex-shrink-0" />
-              <h2 class="font-body font-light text-white/60 min-h-[1.4em]" style="font-size:clamp(0.9rem,2vw,1.2rem)">
-                {{ displayedTitle }}<span class="cursor-blink">|</span>
-              </h2>
-            </div>
+            <h2 class="font-orbitron font-bold mt-2 min-h-[1.8em]" style="font-size:clamp(0.9rem,2.5vw,1.6rem)">
+              <span class="text-blue-700 neon-text">{{ displayedTitle }}</span>
+              <span class="cursor-blink text-blue-700">|</span>
+            </h2>
           </div>
 
-          <!-- Bio -->
-          <p class="text-white/45 font-body leading-relaxed text-sm md:text-base mx-auto lg:mx-0 max-w-md">
+          <p class="text-gray-400 font-exo leading-relaxed text-sm md:text-base mx-auto lg:mx-0 max-w-md">
             {{ info?.bio || 'Passionate developer crafting digital experiences.' }}
           </p>
 
-          <!-- CTA buttons -->
-          <div class="flex flex-wrap gap-3 justify-center lg:justify-start">
-            <a href="#projects" class="btn-solid px-7 py-3 rounded text-sm tracking-wide">View Projects</a>
-            <a href="#contact" class="btn-neon px-7 py-3 rounded text-sm tracking-wide">
+          <div class="flex flex-wrap gap-3 pt-1 justify-center lg:justify-start">
+            <a href="#projects" class="btn-neon px-6 py-3 rounded-xl text-sm">View Projects</a>
+            <a href="#contact" class="px-6 py-3 rounded-xl text-sm font-orbitron border border-red-400 text-red-600 hover:bg-red-50 transition-all">
               Contact Me
             </a>
             <a v-if="info?.resume_url" :href="info.resume_url" target="_blank"
-              class="px-7 py-3 rounded text-sm font-body tracking-wide border border-white/10 text-white/40 hover:text-white hover:border-white/25 transition-all">
+              class="px-6 py-3 rounded-xl text-sm font-orbitron border border-gray-200 text-gray-400 hover:text-gray-900 hover:border-gray-500 transition-all">
               Resume ↗
             </a>
           </div>
 
-          <!-- Location -->
-          <p v-if="info?.location" class="text-white/25 text-xs font-body flex items-center gap-2 justify-center lg:justify-start">
-            <svg class="w-3.5 h-3.5 text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <p v-if="info?.location" class="text-gray-400 text-xs font-exo flex items-center gap-1.5 justify-center lg:justify-start">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
             </svg>
@@ -60,28 +51,28 @@
         </div>
 
         <!-- Right: Avatar -->
-        <div class="flex flex-col items-center gap-8">
-          <div class="avatar-frame">
-            <img v-if="info?.avatar_url" :src="info.avatar_url" alt="avatar" class="w-full h-full object-cover" />
-            <div v-else class="w-full h-full flex items-center justify-center font-display text-white/20"
-              style="font-size:clamp(3rem,8vw,5rem)">
-              {{ info?.name?.[0] || '?' }}
+        <div class="flex flex-col items-center gap-6">
+          <div class="avatar-ring">
+            <div class="avatar-inner">
+              <img v-if="info?.avatar_url" :src="info.avatar_url" alt="avatar" class="w-full h-full object-cover" />
+              <div v-else class="w-full h-full flex items-center justify-center text-blue-700 font-orbitron font-black"
+                style="font-size:clamp(2rem,6vw,4rem)">
+                {{ info?.name?.[0] || '?' }}
+              </div>
             </div>
-            <!-- Corner decorations -->
-            <span class="corner-tl" />
-            <span class="corner-br" />
           </div>
 
           <!-- Social icons -->
           <div class="flex justify-center flex-wrap gap-3">
             <a v-for="s in socials" :key="s.platform"
               :href="s.url" target="_blank" rel="noopener noreferrer" :title="s.platform"
-              class="social-icon w-9 h-9 rounded border border-white/10 flex items-center justify-center text-white/30 hover:text-white hover:border-white/30 transition-all">
+              :class="['social-icon w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-400 transition-colors',
+                ['Twitter','X'].includes(s.platform) ? 'hover:text-red-600' : 'hover:text-blue-700']">
               <SocialIcon :platform="s.platform" />
             </a>
             <a v-if="info?.email" :href="`mailto:${info.email}`"
-              class="social-icon w-9 h-9 rounded border border-white/10 flex items-center justify-center text-white/30 hover:text-red-500 hover:border-red-500/40 transition-all">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="social-icon w-10 h-10 rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center text-gray-400 hover:text-red-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
             </a>
@@ -90,10 +81,10 @@
       </div>
     </div>
 
-    <!-- Scroll indicator -->
-    <div class="hidden md:flex absolute bottom-10 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-white/20">
-      <span class="text-[10px] font-body tracking-[0.25em] uppercase">Scroll</span>
-      <div class="scroll-track"><div class="scroll-thumb" /></div>
+    <!-- Scroll indicator — hidden on mobile -->
+    <div class="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 text-gray-400">
+      <span class="text-xs font-exo tracking-widest uppercase">Scroll</span>
+      <div class="scroll-dot" />
     </div>
   </section>
 </template>
@@ -129,7 +120,7 @@ const SocialIcon = defineComponent({
       LinkedIn: 'M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z',
       Twitter: 'M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z',
     }
-    return () => h('svg', { class: 'w-3.5 h-3.5', fill: 'currentColor', viewBox: '0 0 24 24' },
+    return () => h('svg', { class: 'w-4 h-4', fill: 'currentColor', viewBox: '0 0 24 24' },
       icons[p.platform] ? [h('path', { d: icons[p.platform] })] :
       [h('text', { x: '12', y: '16', 'text-anchor': 'middle', 'font-size': '11', fill: 'currentColor' }, p.platform[0])]
     )
@@ -138,55 +129,35 @@ const SocialIcon = defineComponent({
 </script>
 
 <style scoped>
-/* Avatar frame — sharp rectangular with red corner brackets */
-.avatar-frame {
-  position: relative;
-  width: clamp(200px, 38vw, 320px);
-  height: clamp(200px, 38vw, 320px);
-  overflow: hidden;
-  background: var(--surface);
-}
-.avatar-frame img { width: 100%; height: 100%; object-fit: cover; }
-
-/* Corner bracket decorations */
-.corner-tl,
-.corner-br {
-  position: absolute;
-  width: 24px; height: 24px;
+.scan-line {
+  position: absolute; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(29,78,216,0.3), transparent);
+  animation: scan 6s linear infinite;
   pointer-events: none;
 }
-.corner-tl {
-  top: -1px; left: -1px;
-  border-top: 2px solid var(--red);
-  border-left: 2px solid var(--red);
+.avatar-ring {
+  width: clamp(180px, 40vw, 240px);
+  height: clamp(180px, 40vw, 240px);
+  border-radius: 50%;
+  padding: 3px;
+  background: conic-gradient(#1d4ed8, #dc2626, #1d4ed8);
+  animation: spin-slow 8s linear infinite;
 }
-.corner-br {
-  bottom: -1px; right: -1px;
-  border-bottom: 2px solid var(--red);
-  border-right: 2px solid var(--red);
+@keyframes spin-slow { to { transform: rotate(360deg); } }
+.avatar-inner {
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: #ffffff;
+  overflow: hidden;
+  animation: spin-slow 8s linear infinite reverse;
 }
-
-/* Scroll indicator */
-.scroll-track {
-  width: 1px; height: 40px;
-  background: rgba(255,255,255,0.08);
-  position: relative; overflow: hidden;
+.scroll-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #1d4ed8;
+  animation: bounce-dot 1.5s ease-in-out infinite;
 }
-.scroll-thumb {
-  position: absolute;
-  width: 100%; height: 14px;
-  background: var(--red);
-  top: 0;
-  animation: scroll-drop 1.8s ease-in-out infinite;
-}
-@keyframes scroll-drop {
-  0%  { top: 0; opacity: 1; }
-  80% { top: calc(100% - 14px); opacity: 0.6; }
-  100%{ top: calc(100% - 14px); opacity: 0; }
-}
-
+@keyframes bounce-dot { 0%,100%{transform:translateY(0);opacity:1} 50%{transform:translateY(8px);opacity:0.4} }
 .fade-slide-enter-active { transition: all 0.5s ease 0.3s; }
-.fade-slide-enter-from { opacity: 0; transform: translateY(-6px); }
-
-.social-icon { transition: all 0.2s ease; }
+.fade-slide-enter-from { opacity:0; transform:translateY(-8px); }
 </style>
