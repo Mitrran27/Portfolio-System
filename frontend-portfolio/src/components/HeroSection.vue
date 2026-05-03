@@ -27,7 +27,7 @@
           </div>
 
           <p class="text-gray-400 font-exo leading-relaxed text-sm md:text-base mx-auto lg:mx-0 max-w-md">
-            {{ info?.bio || 'Passionate developer crafting digital experiences.' }}
+            {{ 'Passionate developer crafting digital experiences.' }}
           </p>
 
           <div class="flex flex-wrap gap-3 pt-1 justify-center lg:justify-start">
