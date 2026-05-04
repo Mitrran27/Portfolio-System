@@ -42,11 +42,20 @@
               <!-- Logo / Thumbnail with auto bg color -->
               <div class="project-img relative overflow-hidden"
                 :style="{ backgroundColor: project.image_url ? (project.logo_bg_color || '#0d1117') : undefined }">
-                <img v-if="project.image_url" :src="project.image_url" :alt="project.title"
-                  class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
-                <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
-                  <span class="text-4xl opacity-20">🚀</span>
+                <!-- Dev status thumbnail overlay (replaces image when project is under development) -->
+                <div v-if="project.dev_status" class="w-full h-full flex flex-col items-center justify-center gap-2 p-4" :class="devStatusConfig(project.dev_status).thumbClass">
+                  <span class="text-4xl">{{ devStatusConfig(project.dev_status).bigIcon }}</span>
+                  <span :class="devStatusConfig(project.dev_status).badgeClass" class="text-xs font-exo font-bold px-3 py-1 rounded-full">
+                    {{ devStatusConfig(project.dev_status).icon }} {{ devStatusConfig(project.dev_status).label }}
+                  </span>
                 </div>
+                <template v-else>
+                  <img v-if="project.image_url" :src="project.image_url" :alt="project.title"
+                    class="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-500" />
+                  <div v-else class="w-full h-full flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
+                    <span class="text-4xl opacity-20">🚀</span>
+                  </div>
+                </template>
 
                 <!-- Hover overlay -->
                 <div class="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
@@ -110,39 +119,57 @@
             </button>
           </div>
 
-          <!-- Screenshot gallery -->
-          <div v-if="allImages.length" class="screenshot-area relative bg-black/50 overflow-hidden">
-            <img :src="allImages[activeSlide]" :alt="activeProject.title"
-              class="w-full h-full object-contain transition-opacity duration-300 cursor-zoom-in"
-              @click.stop="openLightbox(activeSlide)" />
-            <button v-if="allImages.length > 1" @click="prevSlide"
-              class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">‹</button>
-            <button v-if="allImages.length > 1" @click="nextSlide"
-              class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">›</button>
-            <div v-if="allImages.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-              <button v-for="(_, idx) in allImages" :key="idx" @click="activeSlide = idx"
-                :class="['w-1.5 h-1.5 rounded-full transition-all', idx === activeSlide ? 'bg-cyan-400 w-4' : 'bg-white/40']" />
+          <!-- Dev status panel — shown instead of screenshot gallery when project is under development -->
+          <div v-if="activeProject.dev_status" class="screenshot-area dev-status-panel" :class="devStatusConfig(activeProject.dev_status).panelClass">
+            <div class="dev-status-card">
+              <div class="dev-status-icon">{{ devStatusConfig(activeProject.dev_status).bigIcon }}</div>
+              <h3 class="dev-status-title">{{ activeProject.title }}</h3>
+              <p class="dev-status-desc">{{ devStatusConfig(activeProject.dev_status).description }}</p>
+              <span class="dev-status-badge" :class="devStatusConfig(activeProject.dev_status).badgeClass">
+                {{ devStatusConfig(activeProject.dev_status).icon }} {{ devStatusConfig(activeProject.dev_status).label }}
+              </span>
+              <!-- Animated decorative bars inspired by ComingSoonPage -->
+              <div class="dev-status-bars">
+                <span v-for="n in 5" :key="n" class="dev-status-bar" :style="{ animationDelay: (n * 0.15) + 's', height: (30 + n * 10) + '%' }" />
+              </div>
             </div>
-            <div v-if="allImages.length > 1" class="absolute top-2 right-2 bg-black/60 text-white text-xs font-exo px-2 py-0.5 rounded">
-              {{ activeSlide + 1 }} / {{ allImages.length }}
-            </div>
-            <div class="absolute bottom-2 right-2 bg-black/60 text-gray-400 text-xs font-exo px-2 py-0.5 rounded flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
-              Click to enlarge
-            </div>
-          </div>
-          <div v-else class="screenshot-area flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
-            <span class="text-6xl opacity-20">🚀</span>
           </div>
 
-          <!-- Thumbnail strip -->
-          <div v-if="allImages.length > 1" class="flex gap-2 px-4 py-2 overflow-x-auto bg-black/30 border-b border-cyan-400/10">
-            <button v-for="(img, idx) in allImages" :key="idx" @click="activeSlide = idx"
-              :class="['flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all',
-                idx === activeSlide ? 'border-cyan-400' : 'border-transparent opacity-50 hover:opacity-80']">
-              <img :src="img" class="w-full h-full object-cover" />
-            </button>
-          </div>
+          <!-- Screenshot gallery — only shown when project is NOT under development -->
+          <template v-else>
+            <div v-if="allImages.length" class="screenshot-area relative bg-black/50 overflow-hidden">
+              <img :src="allImages[activeSlide]" :alt="activeProject.title"
+                class="w-full h-full object-contain transition-opacity duration-300 cursor-zoom-in"
+                @click.stop="openLightbox(activeSlide)" />
+              <button v-if="allImages.length > 1" @click="prevSlide"
+                class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">‹</button>
+              <button v-if="allImages.length > 1" @click="nextSlide"
+                class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all">›</button>
+              <div v-if="allImages.length > 1" class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
+                <button v-for="(_, idx) in allImages" :key="idx" @click="activeSlide = idx"
+                  :class="['w-1.5 h-1.5 rounded-full transition-all', idx === activeSlide ? 'bg-cyan-400 w-4' : 'bg-white/40']" />
+              </div>
+              <div v-if="allImages.length > 1" class="absolute top-2 right-2 bg-black/60 text-white text-xs font-exo px-2 py-0.5 rounded">
+                {{ activeSlide + 1 }} / {{ allImages.length }}
+              </div>
+              <div class="absolute bottom-2 right-2 bg-black/60 text-gray-400 text-xs font-exo px-2 py-0.5 rounded flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+                Click to enlarge
+              </div>
+            </div>
+            <div v-else class="screenshot-area flex items-center justify-center bg-gradient-to-br from-cyan-400/5 to-fuchsia-500/5">
+              <span class="text-6xl opacity-20">🚀</span>
+            </div>
+
+            <!-- Thumbnail strip -->
+            <div v-if="allImages.length > 1" class="flex gap-2 px-4 py-2 overflow-x-auto bg-black/30 border-b border-cyan-400/10">
+              <button v-for="(img, idx) in allImages" :key="idx" @click="activeSlide = idx"
+                :class="['flex-shrink-0 w-14 h-10 rounded overflow-hidden border-2 transition-all',
+                  idx === activeSlide ? 'border-cyan-400' : 'border-transparent opacity-50 hover:opacity-80']">
+                <img :src="img" class="w-full h-full object-cover" />
+              </button>
+            </div>
+          </template>
 
           <!-- Details -->
           <div class="p-5 space-y-4">
@@ -287,6 +314,41 @@ const typeStyle = (type) => {
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
+// ── Dev status config ─────────────────────────────────────────────────────────
+const devStatusConfig = (status) => {
+  const map = {
+    'in-progress': {
+      label: 'In Progress', icon: '⚡', bigIcon: '⚡',
+      description: 'This project is actively being worked on.',
+      panelClass: 'dev-panel-yellow',
+      thumbClass: 'dev-thumb-yellow',
+      badgeClass: 'bg-yellow-400/20 border border-yellow-400/50 text-yellow-300',
+    },
+    'in-development': {
+      label: 'In Development', icon: '🔧', bigIcon: '🔧',
+      description: 'This project is currently in development.',
+      panelClass: 'dev-panel-blue',
+      thumbClass: 'dev-thumb-blue',
+      badgeClass: 'bg-blue-400/20 border border-blue-400/50 text-blue-300',
+    },
+    'under-construction': {
+      label: 'Under Construction', icon: '🚧', bigIcon: '🚧',
+      description: 'This project is under construction.',
+      panelClass: 'dev-panel-orange',
+      thumbClass: 'dev-thumb-orange',
+      badgeClass: 'bg-orange-400/20 border border-orange-400/50 text-orange-300',
+    },
+    'under-testing': {
+      label: 'Under Testing', icon: '🧪', bigIcon: '🧪',
+      description: 'This project is currently in testing phase.',
+      panelClass: 'dev-panel-purple',
+      thumbClass: 'dev-thumb-purple',
+      badgeClass: 'bg-purple-400/20 border border-purple-400/50 text-purple-300',
+    },
+  }
+  return map[status] || { label: status, icon: '🔄', bigIcon: '🔄', description: '', panelClass: 'dev-panel-gray', thumbClass: 'dev-thumb-gray', badgeClass: 'bg-gray-400/20 text-gray-300' }
+}
+
 const openModal = (project) => { activeProject.value = project; activeSlide.value = 0; document.body.style.overflow = 'hidden' }
 const closeModal = () => { activeProject.value = null; activeSlide.value = 0; document.body.style.overflow = '' }
 const nextSlide = () => { activeSlide.value = (activeSlide.value + 1) % allImages.value.length }
@@ -372,4 +434,114 @@ const closeLightbox = () => { lightboxSrc.value = null }
 
 .lightbox-enter-active, .lightbox-leave-active { transition: all 0.2s ease; }
 .lightbox-enter-from, .lightbox-leave-to { opacity: 0; transform: scale(0.97); }
+
+/* ── Dev Status Panel (modal image area) ─────────────────────────────────── */
+.dev-status-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.dev-status-card {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  background: var(--surface, rgba(13,17,23,0.85));
+  border: 1px solid var(--border, rgba(255,255,255,0.1));
+  padding: 32px 40px;
+  border-radius: 12px;
+  max-width: 340px;
+  width: 90%;
+  backdrop-filter: blur(8px);
+}
+
+.dev-status-icon {
+  font-size: 52px;
+  margin-bottom: 12px;
+  animation: dev-pulse 2s ease-in-out infinite;
+}
+
+@keyframes dev-pulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.08); }
+}
+
+.dev-status-title {
+  color: #e2e8f0;
+  font-size: 1rem;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.dev-status-desc {
+  color: #64748b;
+  font-size: 0.75rem;
+  font-family: 'Exo 2', sans-serif;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.dev-status-badge {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-family: 'Exo 2', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Animated bars (inspired by ComingSoonPage) */
+.dev-status-bars {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 32px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.dev-status-bar {
+  width: 5px;
+  border-radius: 2px 2px 0 0;
+  animation: bar-bounce 1.2s ease-in-out infinite alternate;
+}
+
+@keyframes bar-bounce {
+  from { transform: scaleY(0.3); }
+  to   { transform: scaleY(1); }
+}
+
+/* Panel colour themes */
+.dev-panel-yellow { background: linear-gradient(135deg, rgba(234,179,8,0.06), rgba(161,98,7,0.04)); }
+.dev-panel-yellow .dev-status-bar { background: #eab308; }
+.dev-panel-yellow::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(234,179,8,0.08), transparent 70%); pointer-events:none; }
+
+.dev-panel-blue { background: linear-gradient(135deg, rgba(59,130,246,0.06), rgba(29,78,216,0.04)); }
+.dev-panel-blue .dev-status-bar { background: #3b82f6; }
+.dev-panel-blue::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(59,130,246,0.08), transparent 70%); pointer-events:none; }
+
+.dev-panel-orange { background: linear-gradient(135deg, rgba(249,115,22,0.06), rgba(194,65,12,0.04)); }
+.dev-panel-orange .dev-status-bar { background: #f97316; }
+.dev-panel-orange::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(249,115,22,0.08), transparent 70%); pointer-events:none; }
+
+.dev-panel-purple { background: linear-gradient(135deg, rgba(168,85,247,0.06), rgba(109,40,217,0.04)); }
+.dev-panel-purple .dev-status-bar { background: #a855f7; }
+.dev-panel-purple::before { content:''; position:absolute; inset:0; background: radial-gradient(ellipse at center, rgba(168,85,247,0.08), transparent 70%); pointer-events:none; }
+
+.dev-panel-gray { background: rgba(30,30,30,0.5); }
+.dev-panel-gray .dev-status-bar { background: #6b7280; }
+
+/* Grid card thumbnail themes */
+.dev-thumb-yellow { background: linear-gradient(135deg, rgba(234,179,8,0.08), rgba(0,0,0,0.3)); }
+.dev-thumb-blue   { background: linear-gradient(135deg, rgba(59,130,246,0.08), rgba(0,0,0,0.3)); }
+.dev-thumb-orange { background: linear-gradient(135deg, rgba(249,115,22,0.08), rgba(0,0,0,0.3)); }
+.dev-thumb-purple { background: linear-gradient(135deg, rgba(168,85,247,0.08), rgba(0,0,0,0.3)); }
+.dev-thumb-gray   { background: rgba(20,20,20,0.6); }
 </style>

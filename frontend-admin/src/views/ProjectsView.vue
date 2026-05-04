@@ -36,6 +36,12 @@
               </span>
             </AppTooltip>
           </div>
+          <!-- Dev status badge -->
+          <div v-if="project.dev_status" class="absolute bottom-2 left-2 right-2 flex justify-center">
+            <span :class="devStatusStyle(project.dev_status).badge" class="text-xs font-exo font-bold px-3 py-1 rounded-full flex items-center gap-1.5">
+              {{ devStatusStyle(project.dev_status).icon }} {{ devStatusStyle(project.dev_status).label }}
+            </span>
+          </div>
         </div>
 
         <div class="p-5">
@@ -200,6 +206,27 @@
             <input type="checkbox" id="featured" v-model="form.featured" class="w-4 h-4 accent-cyan-400" />
             <label for="featured" class="text-gray-300 text-sm font-exo cursor-pointer">Mark as featured project</label>
           </div>
+
+          <!-- Dev Status -->
+          <div class="col-span-2">
+            <label class="block text-cyan-400 text-sm font-medium mb-2 font-exo">
+              Development Status
+              <span class="text-gray-500 text-xs normal-case ml-1">(leave empty if project is live)</span>
+            </label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <label class="flex items-center gap-2 cursor-pointer px-3 py-2.5 rounded-lg border transition-all font-exo text-sm select-none"
+                :class="!form.dev_status ? 'border-cyan-400/60 bg-cyan-400/10 text-cyan-300' : 'border-gray-700 text-gray-400 hover:border-gray-500'">
+                <input type="radio" class="hidden" :value="null" v-model="form.dev_status" />
+                <span>✅ Live / Normal</span>
+              </label>
+              <label v-for="opt in DEV_STATUS_OPTIONS" :key="opt.value"
+                class="flex items-center gap-2 cursor-pointer px-3 py-2.5 rounded-lg border transition-all font-exo text-sm select-none"
+                :class="form.dev_status === opt.value ? opt.activeClass : 'border-gray-700 text-gray-400 hover:border-gray-500'">
+                <input type="radio" class="hidden" :value="opt.value" v-model="form.dev_status" />
+                <span>{{ opt.icon }} {{ opt.label }}</span>
+              </label>
+            </div>
+          </div>
         </div>
       </form>
       <template #footer>
@@ -242,6 +269,24 @@ const PROJECT_TYPE_OPTIONS = [
   { value: 'ui-ux',       label: 'UI/UX Design', emoji: '🎨' },
   { value: 'ai',          label: 'AI',           emoji: '🤖' },
 ]
+
+// ── Dev status options ────────────────────────────────────────────────────────
+const DEV_STATUS_OPTIONS = [
+  { value: 'in-progress',        label: 'In Progress',        icon: '⚡', activeClass: 'border-yellow-400/60 bg-yellow-400/10 text-yellow-300' },
+  { value: 'in-development',     label: 'In Development',     icon: '🔧', activeClass: 'border-blue-400/60 bg-blue-400/10 text-blue-300' },
+  { value: 'under-construction', label: 'Under Construction', icon: '🚧', activeClass: 'border-orange-400/60 bg-orange-400/10 text-orange-300' },
+  { value: 'under-testing',      label: 'Under Testing',      icon: '🧪', activeClass: 'border-purple-400/60 bg-purple-400/10 text-purple-300' },
+]
+
+const devStatusStyle = (status) => {
+  const map = {
+    'in-progress':        { icon: '⚡', label: 'In Progress',        badge: 'bg-yellow-400/20 border border-yellow-400/50 text-yellow-300' },
+    'in-development':     { icon: '🔧', label: 'In Development',     badge: 'bg-blue-400/20 border border-blue-400/50 text-blue-300' },
+    'under-construction': { icon: '🚧', label: 'Under Construction', badge: 'bg-orange-400/20 border border-orange-400/50 text-orange-300' },
+    'under-testing':      { icon: '🧪', label: 'Under Testing',      badge: 'bg-purple-400/20 border border-purple-400/50 text-purple-300' },
+  }
+  return map[status] || { icon: '🚀', label: status, badge: 'bg-gray-400/20 text-gray-300' }
+}
 
 // ── SVG icon components ──────────────────────────────────────────────────────
 const IconMobile = defineComponent({ render: () => h('svg', { fill: 'none', stroke: 'currentColor', viewBox: '0 0 24 24' }, [
@@ -372,6 +417,7 @@ const defaultForm = () => ({
   image_url: '', logo_bg_color: '', featured: false,
   sort_order: null,  // null = auto (backend will append at end)
   project_types: [],
+  dev_status: null,
   screenshots: []
 })
 const form = ref(defaultForm())
