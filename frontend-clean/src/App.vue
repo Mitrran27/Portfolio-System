@@ -108,20 +108,13 @@ const API = import.meta.env.VITE_API_URL || ''
 
 onMounted(async () => {
   try {
-    const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
-      axios.get(`${API}/api/portfolio`),
-      axios.get(`${API}/api/portfolio/projects`),
-      axios.get(`${API}/api/portfolio/skills`),
-      axios.get(`${API}/api/portfolio/socials`),
-      axios.get(`${API}/api/portfolio/experiences`),
-      axios.get(`${API}/api/portfolio/education`),
-    ])
-    info.value = infoRes.data
-    projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
-    skills.value = skillsRes.data
-    socials.value = socialsRes.data
-    experiences.value = expRes.data
-    education.value = eduRes.data
+    const res = await axios.get(`${API}/api/portfolio/all`)
+    info.value = res.data.info
+    projects.value = res.data.projects
+    skills.value = res.data.skills
+    socials.value = res.data.socials
+    experiences.value = res.data.experiences
+    education.value = res.data.education
     if (info.value?.name) document.title = `${info.value.name} · Portfolio`
   } catch (e) {
     console.error('Failed to load portfolio data', e)
@@ -129,6 +122,29 @@ onMounted(async () => {
     loading.value = false
   }
 })
+// onMounted(async () => {
+//   try {
+//     const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
+//       axios.get(`${API}/api/portfolio`),
+//       axios.get(`${API}/api/portfolio/projects`),
+//       axios.get(`${API}/api/portfolio/skills`),
+//       axios.get(`${API}/api/portfolio/socials`),
+//       axios.get(`${API}/api/portfolio/experiences`),
+//       axios.get(`${API}/api/portfolio/education`),
+//     ])
+//     info.value = infoRes.data
+//     projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
+//     skills.value = skillsRes.data
+//     socials.value = socialsRes.data
+//     experiences.value = expRes.data
+//     education.value = eduRes.data
+//     if (info.value?.name) document.title = `${info.value.name} · Portfolio`
+//   } catch (e) {
+//     console.error('Failed to load portfolio data', e)
+//   } finally {
+//     loading.value = false
+//   }
+// })
 </script>
 
 <style scoped>
