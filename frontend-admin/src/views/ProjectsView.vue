@@ -390,19 +390,27 @@ const onScreenshotUpload = async (e) => {
   if (!files.length) return
   uploadingScreenshot.value = true
   uploadingCount.value = files.length
-  const results = []
-  for (const file of files) {
-    if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} too large (max 5MB)`); continue }
-    try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const { data } = await api.post('/upload/screenshot', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
-      results.push(data.url)
-    } catch { toast.error(`Failed to upload ${file.name}`) }
-    uploadingCount.value--
-  }
+
+  // Upload all screenshots in parallel instead of one-by-one
+  const results = await Promise.all(
+    files.map(async (file) => {
+      if (file.size > 5 * 1024 * 1024) { toast.error(`${file.name} too large (max 5MB)`); return null }
+      try {
+        const fd = new FormData()
+        fd.append('file', file)
+        const { data } = await api.post('/upload/screenshot', fd, { headers: { 'Content-Type': 'multipart/form-data' } })
+        uploadingCount.value--
+        return data.url
+      } catch {
+        toast.error(`Failed to upload ${file.name}`)
+        uploadingCount.value--
+        return null
+      }
+    })
+  )
+
   if (!form.value.screenshots) form.value.screenshots = []
-  form.value.screenshots = [...form.value.screenshots, ...results]
+  form.value.screenshots = [...form.value.screenshots, ...results.filter(Boolean)]
   uploadingScreenshot.value = false
   e.target.value = ''
 }

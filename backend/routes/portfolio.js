@@ -6,23 +6,35 @@ const router = Router()
 
 // GET /api/portfolio — public
 router.get('/', async (req, res) => {
-  let { data, error } = await supabase.from('portfolio').select('*').single()
-
-  if (error || !data) {
-    const { data: seeded, error: seedErr } = await supabase
-      .from('portfolio')
-      .insert({
-        name: 'Your Name', title: 'Full Stack Developer',
-        bio: 'Passionate developer crafting digital experiences.',
-        email: 'hello@example.com', location: 'Kuala Lumpur, Malaysia',
-        available_for_work: true, available_for: 'Freelance, Full-time, Consulting',
-        response_time: 'Within 24 hours'
-      })
-      .select().single()
-    if (seedErr) return res.status(500).json({ error: 'Failed to fetch portfolio' })
-    return res.json(seeded)
-  }
+  const { data, error } = await supabase.from('portfolio').select('*').single()
+  if (error || !data) return res.status(500).json({ error: 'Failed to fetch portfolio' })
+  // Cache publicly for 60s, allow CDN/proxy to cache for 5 min
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
+})
+
+
+// ── GET /api/portfolio/all — returns ALL data in a single request ──────────
+// The portfolio frontend uses this to replace 6 separate fetches with one,
+// dramatically reducing load time (1 round-trip instead of 6).
+router.get('/all', async (req, res) => {
+  const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
+    supabase.from('portfolio').select('*').single(),
+    supabase.from('projects').select('*').order('sort_order', { ascending: true }),
+    supabase.from('skills').select('*').order('category', { ascending: true }),
+    supabase.from('socials').select('*'),
+    supabase.from('experiences').select('*').order('sort_order', { ascending: true }),
+    supabase.from('education').select('*').order('sort_order', { ascending: true }),
+  ])
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
+  res.json({
+    info:        infoRes.data        || null,
+    projects:    projectsRes.data    || [],
+    skills:      skillsRes.data      || [],
+    socials:     socialsRes.data     || [],
+    experiences: expRes.data         || [],
+    education:   eduRes.data         || [],
+  })
 })
 
 // PUT /api/portfolio — admin only
@@ -82,6 +94,7 @@ async function swapSortOrder(projectId, newOrder, oldOrder) {
 router.get('/projects', async (req, res) => {
   const { data, error } = await supabase.from('projects').select('*').order('sort_order', { ascending: true })
   if (error) return res.status(500).json({ error: 'Failed to fetch projects' })
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
 })
 
@@ -138,6 +151,7 @@ router.delete('/projects/:id', authenticate, async (req, res) => {
 router.get('/skills', async (req, res) => {
   const { data, error } = await supabase.from('skills').select('*').order('category', { ascending: true })
   if (error) return res.status(500).json({ error: 'Failed to fetch skills' })
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
 })
 router.post('/skills', authenticate, async (req, res) => {
@@ -160,6 +174,7 @@ router.delete('/skills/:id', authenticate, async (req, res) => {
 router.get('/socials', async (req, res) => {
   const { data, error } = await supabase.from('socials').select('*')
   if (error) return res.status(500).json({ error: 'Failed to fetch socials' })
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
 })
 router.put('/socials', authenticate, async (req, res) => {
@@ -174,6 +189,7 @@ router.put('/socials', authenticate, async (req, res) => {
 router.get('/experiences', async (req, res) => {
   const { data, error } = await supabase.from('experiences').select('*').order('sort_order', { ascending: true })
   if (error) return res.status(500).json({ error: 'Failed to fetch experiences' })
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
 })
 router.post('/experiences', authenticate, async (req, res) => {
@@ -196,6 +212,7 @@ router.delete('/experiences/:id', authenticate, async (req, res) => {
 router.get('/education', async (req, res) => {
   const { data, error } = await supabase.from('education').select('*').order('sort_order', { ascending: true })
   if (error) return res.status(500).json({ error: 'Failed to fetch education' })
+  res.set('Cache-Control', 'public, max-age=60, s-maxage=300')
   res.json(data)
 })
 router.post('/education', authenticate, async (req, res) => {

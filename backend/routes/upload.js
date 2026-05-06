@@ -51,16 +51,23 @@ function readMultipart(req, res, allowedExts) {
   })
 }
 
+// ── Helper: upload buffer to Supabase Storage and return public CDN URL ───
+async function uploadToStorage(buffer, filename, mimeType) {
+  const { error } = await supabase.storage
+    .from('portfolio-assets')
+    .upload(filename, buffer, { contentType: mimeType, upsert: true })
+  if (error) throw new Error(error.message)
+  const { data: urlData } = supabase.storage.from('portfolio-assets').getPublicUrl(filename)
+  return urlData.publicUrl
+}
+
 // ── POST /api/upload/avatar ────────────────────────────────────────────────
 router.post('/avatar', authenticate, async (req, res) => {
   try {
     const { filePart, ext } = await readMultipart(req, res, ['jpg', 'jpeg', 'png', 'gif', 'webp'])
     const filename = `avatar_${Date.now()}.${ext}`
-    const { error } = await supabase.storage.from('portfolio-assets')
-      .upload(filename, filePart.data, { contentType: filePart.type || `image/${ext}`, upsert: true })
-    if (error) return res.status(500).json({ error: error.message })
-    const { data: urlData } = supabase.storage.from('portfolio-assets').getPublicUrl(filename)
-    res.json({ url: urlData.publicUrl })
+    const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
+    res.json({ url })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
@@ -69,11 +76,8 @@ router.post('/resume', authenticate, async (req, res) => {
   try {
     const { filePart } = await readMultipart(req, res, ['pdf'])
     const filename = `resume_${Date.now()}.pdf`
-    const { error } = await supabase.storage.from('portfolio-assets')
-      .upload(filename, filePart.data, { contentType: 'application/pdf', upsert: true })
-    if (error) return res.status(500).json({ error: error.message })
-    const { data: urlData } = supabase.storage.from('portfolio-assets').getPublicUrl(filename)
-    res.json({ url: urlData.publicUrl })
+    const url = await uploadToStorage(filePart.data, filename, 'application/pdf')
+    res.json({ url })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
@@ -81,9 +85,9 @@ router.post('/resume', authenticate, async (req, res) => {
 router.post('/project-image', authenticate, async (req, res) => {
   try {
     const { filePart, ext } = await readMultipart(req, res, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'])
-    const mimeType = filePart.type || `image/${ext}`
-    const base64 = `data:${mimeType};base64,${filePart.data.toString('base64')}`
-    res.json({ url: base64 })
+    const filename = `projects/logo_${Date.now()}.${ext}`
+    const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
+    res.json({ url })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 
@@ -91,9 +95,9 @@ router.post('/project-image', authenticate, async (req, res) => {
 router.post('/screenshot', authenticate, async (req, res) => {
   try {
     const { filePart, ext } = await readMultipart(req, res, ['jpg', 'jpeg', 'png', 'gif', 'webp'])
-    const mimeType = filePart.type || `image/${ext}`
-    const base64 = `data:${mimeType};base64,${filePart.data.toString('base64')}`
-    res.json({ url: base64 })
+    const filename = `projects/screenshot_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`
+    const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
+    res.json({ url })
   } catch (err) { res.status(500).json({ error: err.message }) }
 })
 

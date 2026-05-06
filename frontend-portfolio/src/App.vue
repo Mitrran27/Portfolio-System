@@ -107,20 +107,18 @@ const navLinks = [
 
 onMounted(async () => {
   try {
-    const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
-      axios.get('/api/portfolio'),
-      axios.get('/api/portfolio/projects'),
-      axios.get('/api/portfolio/skills'),
-      axios.get('/api/portfolio/socials'),
-      axios.get('/api/portfolio/experiences'),
-      axios.get('/api/portfolio/education'),
-    ])
-    info.value = infoRes.data
-    projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
-    skills.value = skillsRes.data
-    socials.value = socialsRes.data
-    experiences.value = expRes.data
-    education.value = eduRes.data
+    // Single request instead of 6 — returns all data in one round-trip
+    const { data } = await axios.get('/api/portfolio/all')
+
+    info.value        = data.info
+    skills.value      = data.skills      || []
+    socials.value     = data.socials     || []
+    experiences.value = data.experiences || []
+    education.value   = data.education   || []
+    projects.value    = (data.projects || [])
+      .slice()
+      .sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
+
     if (info.value?.name) document.title = `${info.value.name} · Portfolio`
   } catch (e) {
     console.error('Failed to load portfolio data', e)
