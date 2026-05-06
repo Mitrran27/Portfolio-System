@@ -1,0 +1,1 @@
+import{o,c as s,M as a,a as r,t as n}from"./index-DX3b1Wtz.js";const p={class:"tooltip-wrap"},c={class:"tooltip-content"},_={__name:"AppTooltip",props:{text:{type:String,required:!0}},setup(t){return(e,i)=>(o(),s("div",p,[a(e.$slots,"default"),r("span",c,n(t.text),1)]))}};export{_};
