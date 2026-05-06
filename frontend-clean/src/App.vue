@@ -104,7 +104,8 @@ const navLinks = [
   { href: '#contact', label: 'Contact' },
 ]
 
-const API = import.meta.env.VITE_API_URL || ''
+// const API = 'https://mitrran-portfolio.onrender.com'
+const API = 'https://mitrran-portfolio.onrender.com'
 
 onMounted(async () => {
   try {
