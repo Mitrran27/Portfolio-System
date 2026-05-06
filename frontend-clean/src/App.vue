@@ -104,15 +104,17 @@ const navLinks = [
   { href: '#contact', label: 'Contact' },
 ]
 
+const API = import.meta.env.VITE_API_URL || ''
+
 onMounted(async () => {
   try {
     const [infoRes, projectsRes, skillsRes, socialsRes, expRes, eduRes] = await Promise.all([
-      axios.get('/api/portfolio'),
-      axios.get('/api/portfolio/projects'),
-      axios.get('/api/portfolio/skills'),
-      axios.get('/api/portfolio/socials'),
-      axios.get('/api/portfolio/experiences'),
-      axios.get('/api/portfolio/education'),
+      axios.get(`${API}/api/portfolio`),
+      axios.get(`${API}/api/portfolio/projects`),
+      axios.get(`${API}/api/portfolio/skills`),
+      axios.get(`${API}/api/portfolio/socials`),
+      axios.get(`${API}/api/portfolio/experiences`),
+      axios.get(`${API}/api/portfolio/education`),
     ])
     info.value = infoRes.data
     projects.value = (projectsRes.data || []).slice().sort((a, b) => (a.sort_order ?? 9999) - (b.sort_order ?? 9999))
