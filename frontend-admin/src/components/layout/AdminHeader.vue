@@ -37,7 +37,7 @@
 
         <!-- View Portfolio -->
         <AppTooltip text="View Portfolio">
-          <a href="http://localhost:5173" target="_blank"
+          <a href="https://mitrran-portfolio.vercel.app" target="_blank"
             class="text-gray-400 hover:text-fuchsia-400 transition-colors p-2 rounded-lg hover:bg-fuchsia-400/10">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -79,8 +79,6 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 const messagesStore = useMessagesStore()
-
-const portfolioUrl = import.meta.env.VITE_PORTFOLIO_URL || 'http://localhost:5173'
 
 const unreadCount = computed(() => messagesStore.unreadCount)
 const currentRoute = computed(() => route.name || 'Dashboard')
