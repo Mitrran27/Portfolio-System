@@ -80,6 +80,8 @@ const router = useRouter()
 const route = useRoute()
 const messagesStore = useMessagesStore()
 
+const portfolioUrl = import.meta.env.VITE_PORTFOLIO_URL || 'http://localhost:5173'
+
 const unreadCount = computed(() => messagesStore.unreadCount)
 const currentRoute = computed(() => route.name || 'Dashboard')
 const adminInitial = computed(() => auth.admin?.email?.[0]?.toUpperCase() || 'A')
