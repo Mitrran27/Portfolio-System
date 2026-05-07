@@ -30,7 +30,10 @@ router.post('/', contactLimiter, async (req, res) => {
     .select()
     .single()
 
-  if (error) return res.status(500).json({ error: 'Failed to save message' })
+  if (error) {
+    console.error('Supabase error:', JSON.stringify(error))
+    return res.status(500).json({ error: error.message || 'Failed to save message' })
+  }
   res.status(201).json({ success: true, id: data.id })
 })
 
