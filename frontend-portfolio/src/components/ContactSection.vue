@@ -151,6 +151,7 @@
 import { ref, defineComponent, h } from 'vue'
 import { useIntersectionObserver } from '@vueuse/core'
 import axios from 'axios'
+import { API } from '@/config.js'
 
 defineProps({ info: Object, socials: Array })
 
@@ -171,7 +172,7 @@ const sendMessage = async () => {
   sending.value = true
   errorMsg.value = ''
   try {
-    await axios.post('/api/messages', form.value)
+    await axios.post(`${API}/api/messages`, form.value)
     submitted.value = true
   } catch (err) {
     errorMsg.value = err.response?.data?.error || 'Something went wrong. Please try again.'
