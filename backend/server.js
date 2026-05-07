@@ -19,6 +19,8 @@ app.use(cors({
   origin: [
     'http://localhost:5173',
     'http://localhost:5174',
+    'https://mitrran-portfolio.vercel.app',
+    'https://mitrran-portfolio-admin.vercel.app',
     process.env.PORTFOLIO_URL,
     process.env.ADMIN_URL
   ].filter(Boolean),
