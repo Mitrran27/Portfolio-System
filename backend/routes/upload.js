@@ -56,7 +56,10 @@ async function uploadToStorage(buffer, filename, mimeType) {
   const { error } = await supabase.storage
     .from('portfolio-assets')
     .upload(filename, buffer, { contentType: mimeType, upsert: true })
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Supabase storage error:', JSON.stringify(error))
+    throw new Error(error.message)
+  }
   const { data: urlData } = supabase.storage.from('portfolio-assets').getPublicUrl(filename)
   return urlData.publicUrl
 }
