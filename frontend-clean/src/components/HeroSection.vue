@@ -18,7 +18,7 @@
           <div>
             <p class="text-gray-400 font-exo text-xs mb-2 tracking-widest uppercase">Hello, I'm</p>
             <h1 class="font-orbitron font-black leading-tight" style="font-size:clamp(1.9rem,5vw,3.8rem)">
-              <span class="text-gray-900">{{ info?.name || 'Your Name' }}</span>
+              <span class="text-gray-900">{{ info?.name  }}</span>
             </h1>
             <h2 class="font-orbitron font-bold mt-2 min-h-[1.8em]" style="font-size:clamp(0.9rem,2.5vw,1.6rem)">
               <span class="text-blue-700 neon-text">{{ displayedTitle }}</span>

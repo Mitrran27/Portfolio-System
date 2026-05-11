@@ -68,7 +68,10 @@ router.post('/avatar', authenticate, async (req, res) => {
     const filename = `avatar_${Date.now()}.${ext}`
     const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
     res.json({ url })
-  } catch (err) { res.status(500).json({ error: err.message }) }
+  } catch (err) { 
+  console.error('Upload error:', err.message)
+  res.status(500).json({ error: err.message }) 
+}
 })
 
 // ── POST /api/upload/resume ────────────────────────────────────────────────
@@ -78,7 +81,10 @@ router.post('/resume', authenticate, async (req, res) => {
     const filename = `resume_${Date.now()}.pdf`
     const url = await uploadToStorage(filePart.data, filename, 'application/pdf')
     res.json({ url })
-  } catch (err) { res.status(500).json({ error: err.message }) }
+  } catch (err) { 
+  console.error('Upload error:', err.message)
+  res.status(500).json({ error: err.message }) 
+}
 })
 
 // ── POST /api/upload/project-image — logo stored as base64 in DB ──────────
@@ -88,7 +94,10 @@ router.post('/project-image', authenticate, async (req, res) => {
     const filename = `projects/logo_${Date.now()}.${ext}`
     const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
     res.json({ url })
-  } catch (err) { res.status(500).json({ error: err.message }) }
+  } catch (err) { 
+  console.error('Upload error:', err.message)
+  res.status(500).json({ error: err.message }) 
+}
 })
 
 // ── POST /api/upload/screenshot — stored as base64 in DB ─────────────────
@@ -98,7 +107,10 @@ router.post('/screenshot', authenticate, async (req, res) => {
     const filename = `projects/screenshot_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`
     const url = await uploadToStorage(filePart.data, filename, filePart.type || `image/${ext}`)
     res.json({ url })
-  } catch (err) { res.status(500).json({ error: err.message }) }
+  } catch (err) { 
+  console.error('Upload error:', err.message)
+  res.status(500).json({ error: err.message }) 
+}
 })
 
 export default router
